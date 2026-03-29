@@ -484,7 +484,7 @@ export default function Home() {
       {/* FEATURES */}
       <section id="features" style={{ ...s.section, paddingTop: 'clamp(80px, 12vw, 140px)' }}>
         <p style={s.sectionLabel}>What you get</p>
-        <h2 style={s.h2}>Everything your agency does.<br />For £25 a month.</h2>
+        <h2 style={s.h2}>Everything your agency does.<br />For $30 a month.</h2>
         <p style={s.sectionSub}>Five tools that replace your management agency. You keep every penny and stay in full control of your account.</p>
         <div style={s.featureGrid}>
           {features.map((f, i) => (
