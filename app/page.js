@@ -449,7 +449,7 @@ export default function Home() {
   You don&apos;t need<br />an agency.
 </h1>
 <p className="fade-up fade-up-3" style={s.heroSub}>
-  Everything your agency does. £25 a month.<br />Keep 100% of your earnings.
+  Everything your agency does. $30 a month.<br />Keep 100% of your earnings.
 </p>
         <div
           className="fade-up fade-up-4"
@@ -585,7 +585,7 @@ export default function Home() {
             <p style={s.pricingBody}>
               Everything you need to run your creator career like a business. No agency taking their cut month after month.
             </p>
-            <div style={s.price}>£25</div>
+            <div style={s.price}>$30</div>
             <p style={s.priceSub}>per month · cancel anytime</p>
             <button
               style={s.pricingBtn}
