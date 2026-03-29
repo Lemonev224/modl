@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -8,12 +8,10 @@ export default function LoginPage() {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
-
-  useEffect(() => setMounted(true), [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,10 +24,26 @@ export default function LoginPage() {
       if (error) { setError(error.message); setStatus('error') }
       else router.push('/dashboard')
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: name.trim() } }
+      })
       if (error) { setError(error.message); setStatus('error') }
       else setStatus('success')
     }
+  }
+
+  const handleForgot = async (e) => {
+    e.preventDefault()
+    setStatus('loading')
+    setError('')
+    const supabase = createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) { setError(error.message); setStatus('error') }
+    else setStatus('forgot-sent')
   }
 
   return (
@@ -53,7 +67,6 @@ export default function LoginPage() {
           .auth-right { padding: 48px 28px !important; }
         }
 
-        /* ── Left panel ── */
         .auth-left {
           position: relative;
           background: #0e0e0e;
@@ -82,10 +95,7 @@ export default function LoginPage() {
           opacity: 0.6;
         }
 
-        .auth-brand {
-          position: relative;
-          z-index: 1;
-        }
+        .auth-brand { position: relative; z-index: 1; }
 
         .auth-brand-logo {
           font-family: 'Cormorant Garamond', serif;
@@ -104,10 +114,7 @@ export default function LoginPage() {
           font-weight: 300;
         }
 
-        .auth-left-content {
-          position: relative;
-          z-index: 1;
-        }
+        .auth-left-content { position: relative; z-index: 1; }
 
         .auth-left-quote {
           font-family: 'Cormorant Garamond', serif;
@@ -120,15 +127,8 @@ export default function LoginPage() {
           margin-bottom: 28px;
         }
 
-        .auth-left-quote em {
-          color: #C9A96E;
-          font-style: normal;
-        }
-
-        .auth-left-stats {
-          display: flex;
-          gap: 40px;
-        }
+        .auth-left-quote em { color: #C9A96E; font-style: normal; }
+        .auth-left-stats { display: flex; gap: 40px; }
 
         .auth-stat-value {
           font-family: 'Cormorant Garamond', serif;
@@ -154,9 +154,7 @@ export default function LoginPage() {
           gap: 12px;
         }
 
-        .auth-avatar-stack {
-          display: flex;
-        }
+        .auth-avatar-stack { display: flex; }
 
         .auth-avatar {
           width: 32px;
@@ -174,19 +172,9 @@ export default function LoginPage() {
         }
 
         .auth-avatar:first-child { margin-left: 0; }
+        .auth-social-proof { font-size: 12px; color: #555; line-height: 1.5; }
+        .auth-social-proof strong { color: #8a7e6e; font-weight: 500; }
 
-        .auth-social-proof {
-          font-size: 12px;
-          color: #555;
-          line-height: 1.5;
-        }
-
-        .auth-social-proof strong {
-          color: #8a7e6e;
-          font-weight: 500;
-        }
-
-        /* ── Right panel ── */
         .auth-right {
           background: #F5F0E8;
           display: flex;
@@ -207,9 +195,7 @@ export default function LoginPage() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .auth-form-header {
-          margin-bottom: 40px;
-        }
+        .auth-form-header { margin-bottom: 40px; }
 
         .auth-form-title {
           font-family: 'Cormorant Garamond', serif;
@@ -221,15 +207,8 @@ export default function LoginPage() {
           margin-bottom: 8px;
         }
 
-        .auth-form-sub {
-          font-size: 14px;
-          color: #8a7e6e;
-          font-weight: 300;
-        }
-
-        .auth-field {
-          margin-bottom: 14px;
-        }
+        .auth-form-sub { font-size: 14px; color: #8a7e6e; font-weight: 300; }
+        .auth-field { margin-bottom: 14px; }
 
         .auth-label {
           display: block;
@@ -272,6 +251,16 @@ export default function LoginPage() {
           margin-bottom: 14px;
         }
 
+        .auth-success-msg {
+          font-size: 13px;
+          color: #4a8a5f;
+          background: rgba(74,138,95,0.08);
+          border: 1px solid rgba(74,138,95,0.2);
+          border-radius: 8px;
+          padding: 10px 14px;
+          margin-top: 12px;
+        }
+
         .auth-btn {
           width: 100%;
           font-family: 'DM Sans', sans-serif;
@@ -295,32 +284,8 @@ export default function LoginPage() {
         .auth-btn:active { transform: scale(0.99); }
         .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .auth-btn-gold {
-          background: #C9A96E;
-          color: #0e0e0e;
-          margin-top: 6px;
-        }
-
+        .auth-btn-gold { background: #C9A96E; color: #0e0e0e; margin-top: 6px; }
         .auth-btn-gold:hover { background: #b8944f; }
-
-        .auth-divider {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 24px 0;
-        }
-
-        .auth-divider-line {
-          flex: 1;
-          height: 1px;
-          background: #DDD8CE;
-        }
-
-        .auth-divider-text {
-          font-size: 11px;
-          color: #b5aa99;
-          letter-spacing: 0.08em;
-        }
 
         .auth-switch {
           text-align: center;
@@ -342,10 +307,7 @@ export default function LoginPage() {
           text-underline-offset: 2px;
         }
 
-        .auth-success {
-          text-align: center;
-          padding: 48px 0;
-        }
+        .auth-success { text-align: center; padding: 48px 0; }
 
         .auth-success-icon {
           width: 56px;
@@ -368,11 +330,7 @@ export default function LoginPage() {
           margin-bottom: 10px;
         }
 
-        .auth-success-body {
-          font-size: 14px;
-          color: #8a7e6e;
-          line-height: 1.6;
-        }
+        .auth-success-body { font-size: 14px; color: #8a7e6e; line-height: 1.6; }
 
         .auth-terms {
           margin-top: 24px;
@@ -447,6 +405,52 @@ export default function LoginPage() {
                   <strong style={{ color: '#0e0e0e' }}>{email}</strong>
                 </p>
               </div>
+
+            ) : mode === 'forgot' ? (
+              <>
+                <div className="auth-form-header">
+                  <h1 className="auth-form-title">Reset password.</h1>
+                  <p className="auth-form-sub">Enter your email and we&apos;ll send a reset link.</p>
+                </div>
+
+                <form onSubmit={handleForgot}>
+                  <div className="auth-field">
+                    <label className="auth-label">Email</label>
+                    <input
+                      className="auth-input"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  {error && <div className="auth-error">{error}</div>}
+
+                  {status === 'forgot-sent' ? (
+                    <div className="auth-success-msg">
+                      ✓ Reset link sent — check your inbox.
+                    </div>
+                  ) : (
+                    <button type="submit" className="auth-btn" disabled={status === 'loading'}>
+                      {status === 'loading' ? 'Sending…' : 'Send reset link'}
+                    </button>
+                  )}
+                </form>
+
+                <div className="auth-switch">
+                  <button
+                    type="button"
+                    className="auth-switch-btn"
+                    onClick={() => { setMode('login'); setError(''); setStatus('idle') }}
+                  >
+                    ← Back to sign in
+                  </button>
+                </div>
+              </>
+
             ) : (
               <>
                 <div className="auth-form-header">
@@ -461,6 +465,23 @@ export default function LoginPage() {
                 </div>
 
                 <form onSubmit={handleSubmit}>
+
+                  {/* Name field — signup only */}
+                  {mode === 'signup' && (
+                    <div className="auth-field">
+                      <label className="auth-label">Your name</label>
+                      <input
+                        className="auth-input"
+                        type="text"
+                        placeholder="What should we call you?"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                        autoComplete="name"
+                      />
+                    </div>
+                  )}
+
                   <div className="auth-field">
                     <label className="auth-label">Email</label>
                     <input
@@ -505,7 +526,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       style={{ background: 'none', border: 'none', color: '#b5aa99', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textDecoration: 'underline', textUnderlineOffset: 2 }}
-                      onClick={() => {}}
+                      onClick={() => { setMode('forgot'); setError(''); setStatus('idle') }}
                     >
                       Forgot password?
                     </button>
@@ -530,6 +551,7 @@ export default function LoginPage() {
                 )}
               </>
             )}
+
           </div>
         </div>
       </div>

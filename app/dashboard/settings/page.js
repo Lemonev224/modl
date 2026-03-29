@@ -152,31 +152,20 @@ export default function SettingsPage() {
 
   // ── Delete account ────────────────────────────────────────
   // Requires a Supabase Edge Function — see supabase/functions/delete-account/index.ts below
-  const handleDelete = async () => {
-    if (deleteInput !== user?.email)
-      return showToast('Email does not match', 'error')
-    setLoad('delete', true)
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      }
-    )
-    setLoad('delete', false)
-    if (res.ok) {
-      await supabase.auth.signOut()
-      router.push('/')
-    } else {
-      const body = await res.json().catch(() => ({}))
-      showToast(body.error ?? 'Failed to delete account', 'error')
-    }
+const handleDelete = async () => {
+  if (deleteInput !== user?.email)
+    return showToast('Email does not match', 'error')
+  setLoad('delete', true)
+  const supabase = createClient()
+  const { error } = await supabase.rpc('delete_user')
+  setLoad('delete', false)
+  if (error) {
+    showToast(error.message, 'error')
+  } else {
+    await supabase.auth.signOut()
+    router.push('/')
   }
+}
 
   if (!user) return null
 
