@@ -15,10 +15,10 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: 'MODL — Be Your Own Agency',
-  description: 'Everything your agency does. For $30 a month. Keep 100% of your earnings.',
+  description: 'Everything your management agency does. For £25 a month. Keep 100% of your earnings.',
   openGraph: {
     title: 'MODL — Be Your Own Agency',
-    description: 'Professional comp card, verified casting calls, contracts and payments. You never need an agency again.',
+    description: 'Earnings tracking, content scheduling, fan CRM, and analytics — all in one dashboard. You never need a management agency again.',
   },
 }
 

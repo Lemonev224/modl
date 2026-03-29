@@ -1,21 +1,20 @@
 'use client'
-
+ 
 import { useState } from 'react'
-
 import { Playfair_Display, Inter } from 'next/font/google'
-
+ 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-display',
 })
-
+ 
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
 })
-
+ 
 const s = {
   // Nav
   nav: {
@@ -40,7 +39,7 @@ const s = {
     padding: '10px 24px', cursor: 'pointer',
     transition: 'background 0.2s',
   },
-
+ 
   // Hero
   hero: {
     minHeight: '100vh',
@@ -70,7 +69,7 @@ const s = {
     color: '#8a7e6e', lineHeight: 1.6,
     maxWidth: 520, marginBottom: 48,
   },
-
+ 
   // Waitlist form
   form: {
     display: 'flex', gap: 8, width: '100%', maxWidth: 440,
@@ -97,7 +96,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 12, color: '#b5aa99', marginTop: 16,
   },
-
+ 
   // Section shared
   section: {
     padding: 'clamp(60px, 10vw, 120px) clamp(24px, 6vw, 96px)',
@@ -120,7 +119,7 @@ const s = {
     fontSize: 17, color: '#8a7e6e', lineHeight: 1.6,
     maxWidth: 520, marginBottom: 56,
   },
-
+ 
   // Problem cards
   problemGrid: {
     display: 'grid',
@@ -143,7 +142,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 15, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Features
   featureGrid: {
     display: 'grid',
@@ -171,7 +170,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 14, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Steps
   stepsGrid: {
     display: 'grid',
@@ -198,17 +197,17 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 14, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Pricing
-pricingWrap: {
-  background: '#0e0e0e',
-  borderRadius: 24,
-  padding: 'clamp(40px, 6vw, 72px)',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', // was '1fr 1fr'
-  gap: 48,
-  alignItems: 'center',
-},
+  pricingWrap: {
+    background: '#0e0e0e',
+    borderRadius: 24,
+    padding: 'clamp(40px, 6vw, 72px)',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 48,
+    alignItems: 'center',
+  },
   pricingLeft: {},
   pricingH2: {
     fontFamily: 'var(--font-display), Georgia, serif',
@@ -228,84 +227,120 @@ pricingWrap: {
   },
   priceSub: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 13, color: '#555', marginBottom: 32,
-  },
-  featureList: {
-    listStyle: 'none',
-    display: 'flex', flexDirection: 'column', gap: 12,
-  },
-  featureItem: {
-    fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 14, color: '#b5aa99',
-    display: 'flex', alignItems: 'center', gap: 10,
-  },
-  checkmark: {
-    color: '#C9A96E', fontSize: 14, flexShrink: 0,
+    fontSize: 13, color: '#8a7e6e', marginBottom: 32,
   },
   pricingBtn: {
-    marginTop: 32,
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 13, fontWeight: 500, letterSpacing: '0.06em',
     background: '#C9A96E', color: '#0e0e0e',
     border: 'none', borderRadius: 100,
     padding: '14px 32px', cursor: 'pointer',
     transition: 'background 0.2s',
-    display: 'inline-block',
   },
-
-  // Dark CTA section
-  ctaSection: {
-    background: '#0e0e0e',
-    padding: 'clamp(80px, 12vw, 140px) clamp(24px, 6vw, 96px)',
-    textAlign: 'center',
-    display: 'flex', flexDirection: 'column',
-    alignItems: 'center',
+  pricingFeatureList: {
+    display: 'flex', flexDirection: 'column', gap: 16,
   },
-  ctaH2: {
-    fontFamily: 'var(--font-display), Georgia, serif',
-    fontSize: 'clamp(36px, 6vw, 80px)',
-    fontWeight: 300, color: '#F5F0E8',
-    lineHeight: 1.05, letterSpacing: '-0.02em',
-    maxWidth: 800, marginBottom: 24,
+  pricingFeatureItem: {
+    display: 'flex', alignItems: 'flex-start', gap: 12,
   },
-  ctaSub: {
+  pricingCheck: {
+    color: '#C9A96E', fontSize: 14, flexShrink: 0, marginTop: 2,
+  },
+  pricingFeatureText: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 17, color: '#8a7e6e', lineHeight: 1.6,
-    maxWidth: 480, marginBottom: 48,
+    fontSize: 15, color: '#8a7e6e', lineHeight: 1.5,
   },
-
+ 
   // Footer
   footer: {
-    background: '#0e0e0e',
-    borderTop: '1px solid #1e1e1e',
-    padding: '32px 48px',
+    borderTop: '1px solid #DDD8CE',
+    padding: '40px clamp(24px, 6vw, 96px)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     flexWrap: 'wrap', gap: 16,
+    maxWidth: 1200, margin: '0 auto',
   },
   footerLogo: {
     fontFamily: 'var(--font-display), Georgia, serif',
-    fontSize: 18, fontWeight: 500, letterSpacing: '0.2em', color: '#F5F0E8',
+    fontSize: 18, fontWeight: 500, letterSpacing: '0.2em', color: '#0e0e0e',
   },
   footerLinks: {
-    display: 'flex', gap: 24, flexWrap: 'wrap',
+    display: 'flex', gap: 32, flexWrap: 'wrap',
   },
   footerLink: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 12, color: '#555', textDecoration: 'none',
-    transition: 'color 0.2s',
-    letterSpacing: '0.04em',
+    fontSize: 13, color: '#8a7e6e', textDecoration: 'none',
   },
-  footerRight: {
+  footerCopy: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 12, color: '#333',
+    fontSize: 12, color: '#b5aa99',
   },
 }
-
- function WaitlistForm({ which }) {
+ 
+// ─── Data ────────────────────────────────────────────────────────────────────
+ 
+const problems = [
+  {
+    icon: '✕',
+    title: 'They take 30–50% forever',
+    body: 'Management agencies pocket up to half of everything you earn — every month, indefinitely. That\'s thousands leaving your account before you\'ve even seen it.',
+  },
+  {
+    icon: '✕',
+    title: 'They hold your account hostage',
+    body: 'Agencies demand your login credentials then use account access as leverage. When you want to leave, they make it as painful as possible.',
+  },
+  {
+    icon: '✕',
+    title: 'You\'re kept in the dark',
+    body: 'No real analytics, no subscriber data, no visibility into your own business. Agencies hide the numbers because informed creators are harder to exploit.',
+  },
+]
+ 
+const features = [
+  {
+    num: '01',
+    title: 'Earnings Tracker',
+    body: 'Every pound in one place. Subscription income, PPV, and tips broken out separately. Projected earnings, expense tracking, and your real profit — all visible.',
+  },
+  {
+    num: '02',
+    title: 'Content Scheduler',
+    body: 'Plan weeks of content in advance. Calendar view, upload queue, and notes on every post. No more scrambling daily or paying someone else to manage it for you.',
+  },
+  {
+    num: '03',
+    title: 'Fan CRM',
+    body: 'Message templates for common interactions, notes on who\'s who, and high-spender flagging for priority attention. Manage your top fans without burning out.',
+  },
+  {
+    num: '04',
+    title: 'Promotion Tracker',
+    body: 'Log every shoutout, collab, and Reddit promo. Track what you spent, what growth it drove, and what converted. Stop wasting money on promotions that don\'t work.',
+  },
+  {
+    num: '05',
+    title: 'Analytics Dashboard',
+    body: 'Subscriber growth, best-performing content, optimal posting times, churn rate, and average fan value. The data agencies hide from you — fully visible and yours.',
+  },
+]
+ 
+const pricingFeatures = [
+  'Earnings tracker — subscriptions, PPV, and tips',
+  'Content scheduler with calendar view',
+  'Fan CRM with message templates and notes',
+  'Promotion tracker with ROI logging',
+  'Full analytics dashboard',
+  'No commission on earnings. Ever.',
+  'Your data stays yours — always',
+  'Cancel anytime',
+]
+ 
+// ─── Waitlist Form Component ──────────────────────────────────────────────────
+ 
+function WaitlistForm({ dark = false }) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState('idle')
-  const dark = which === 'cta'
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email) return
@@ -326,15 +361,15 @@ pricingWrap: {
       setStatus('error')
     }
   }
-
+ 
   if (status === 'success') {
     return (
       <p style={{ ...s.socialProof, color: '#C9A96E', fontSize: 15 }}>
-        ✓ You're on the list. We'll be in touch soon.
+        ✓ You&apos;re on the list. We&apos;ll be in touch soon.
       </p>
     )
   }
-
+ 
   return (
     <form onSubmit={handleSubmit} style={s.form}>
       <input
@@ -365,90 +400,36 @@ pricingWrap: {
     </form>
   )
 }
-
-const features = [
-  {
-    num: '01',
-    title: 'Your Comp Card',
-    body: 'A beautiful shareable link with your portfolio, measurements, and rates. Send it directly to brands and photographers like a pro.',
-  },
-  {
-    num: '02',
-    title: 'Verified Castings',
-    body: 'Browse jobs from verified brands only. Every client is checked before they can post. No scammers, no fake castings, ever.',
-  },
-  {
-    num: '03',
-    title: 'Auto Contracts',
-    body: 'Fill in the job details and we generate a professional contract automatically. Never get stiffed on a payment again.',
-  },
-  {
-    num: '04',
-    title: 'Escrow Payments',
-    body: 'Clients pay through MODL before the shoot. Money releases to your account when you confirm the job is done.',
-  },
-]
-
-const pricingFeatures = [
-  'Shareable comp card and portfolio',
-  'Unlimited casting call applications',
-  'Auto-generated contracts and invoices',
-  'Escrow payments on every booking',
-  'Direct messaging with verified clients',
-  'Privacy mode for content creators',
-  'Booking and earnings dashboard',
-  'Cancel anytime',
-]
-
+ 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+ 
 export default function Home() {
-  const [email, setEmail] = useState('')
-  const [ctaEmail, setCtaEmail] = useState('')
-  const [status, setStatus] = useState('idle') // idle | loading | success | error
-  const [ctaStatus, setCtaStatus] = useState('idle')
-
-  const handleSubmit = async (e, which) => {
-    e.preventDefault()
-    const val = which === 'hero' ? email : ctaEmail
-    const setter = which === 'hero' ? setStatus : setCtaStatus
-    if (!val) return
-
-    setter('loading')
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: val }),
-      })
-      if (res.ok) {
-        setter('success')
-        which === 'hero' ? setEmail('') : setCtaEmail('')
-      } else {
-        setter('error')
-      }
-    } catch {
-      setter('error')
-    }
+  const scrollToWaitlist = () => {
+    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
   }
-
-
-
+ 
   return (
     <div className={`${playfair.variable} ${inter.variable}`}>
+ 
       {/* NAV */}
       <nav style={s.nav}>
         <span style={s.logo}>MODL</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="#features" style={{ ...s.footerLink, color: '#8a7e6e', fontSize: 13 }}>Features</a>
           <a href="#pricing" style={{ ...s.footerLink, color: '#8a7e6e', fontSize: 13 }}>Pricing</a>
-          <a href="#waitlist">
-            <button style={s.navBtn}>Join Waitlist</button>
-          </a>
+
+<button
+  style={s.navBtn}
+  onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
+>
+  Join Waitlist
+</button>
         </div>
       </nav>
-
+ 
       {/* HERO */}
       <section style={s.hero}>
-        {/* Decorative circle */}
+        {/* Decorative circles */}
         <div style={{
           position: 'absolute', top: '15%', right: '8%',
           width: 320, height: 320, borderRadius: '50%',
@@ -461,48 +442,36 @@ export default function Home() {
           border: '1px solid #C9A96E', opacity: 0.2,
           pointerEvents: 'none',
         }} />
+ 
 
-        <p className="fade-up fade-up-1" style={s.heroLabel}>The Agency Alternative</p>
-        <h1 className="fade-up fade-up-2" style={s.h1}>
-          You don't need<br />an agency.
-        </h1>
-        <p className="fade-up fade-up-3" style={s.heroSub}>
-          MODL gives every model a professional comp card, verified casting calls, automatic contracts and payments — for $30 a month. Keep 100% of your earnings.
-        </p>
-        <div className="fade-up fade-up-4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}>
-          <WaitlistForm which="hero" />
+
+<h1 className="fade-up fade-up-2" style={s.h1}>
+  You don&apos;t need<br />an agency.
+</h1>
+<p className="fade-up fade-up-3" style={s.heroSub}>
+  Everything your agency does. £25 a month.<br />Keep 100% of your earnings.
+</p>
+        <div
+          className="fade-up fade-up-4"
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}
+        >
+          <WaitlistForm />
           <p style={s.socialProof}>No spam · One email when we launch · Cancel anytime</p>
         </div>
       </section>
-
+ 
       {/* PROBLEM */}
       <div style={{ background: '#EDE8DF', padding: '0' }}>
         <div style={{ ...s.section, paddingBottom: 0 }}>
           <p style={s.sectionLabel}>The problem</p>
-          <h2 style={s.h2}>Why models are done<br />with agencies</h2>
+          <h2 style={s.h2}>Why creators are done<br />with management agencies</h2>
         </div>
         <div style={{ ...s.problemGrid, marginTop: 0 }}>
-          {[
-            {
-              icon: '✕',
-              title: 'They take 20% forever',
-              body: 'The average agency takes a fifth of every booking for as long as you\'re signed. That\'s thousands of dollars a year leaving your pocket.',
-            },
-            {
-              icon: '✕',
-              title: 'They control who sees you',
-              body: 'Agencies decide which clients you meet and which jobs you\'re submitted for. You have zero visibility into what\'s happening with your career.',
-            },
-            {
-              icon: '✕',
-              title: 'They charge you upfront',
-              body: 'Portfolios, comp cards, training, registration fees. Legitimate agencies don\'t charge models — but most of them do anyway.',
-            },
-          ].map((p, i) => (
+          {problems.map((p, i) => (
             <div key={i} style={{
               ...s.problemCard,
               borderRadius: 0,
-              borderRight: i < 2 ? '2px solid #F5F0E8' : 'none',
+              borderRight: i < problems.length - 1 ? '2px solid #F5F0E8' : 'none',
             }}>
               <div style={{ ...s.problemIcon, color: '#C9A96E' }}>{p.icon}</div>
               <h3 style={s.problemTitle}>{p.title}</h3>
@@ -511,12 +480,12 @@ export default function Home() {
           ))}
         </div>
       </div>
-
+ 
       {/* FEATURES */}
       <section id="features" style={{ ...s.section, paddingTop: 'clamp(80px, 12vw, 140px)' }}>
         <p style={s.sectionLabel}>What you get</p>
-        <h2 style={s.h2}>Everything your agency does.<br />For $30 a month.</h2>
-        <p style={s.sectionSub}>One subscription replaces your agency, your comp card printer, your contract lawyer, and your accountant.</p>
+        <h2 style={s.h2}>Everything your agency does.<br />For £25 a month.</h2>
+        <p style={s.sectionSub}>Five tools that replace your management agency. You keep every penny and stay in full control of your account.</p>
         <div style={s.featureGrid}>
           {features.map((f, i) => (
             <div
@@ -538,7 +507,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
+ 
       {/* HOW IT WORKS */}
       <section style={{ ...s.section }}>
         <p style={s.sectionLabel}>How it works</p>
@@ -547,18 +516,18 @@ export default function Home() {
           {[
             {
               num: 'Step 01',
-              title: 'Create your profile',
-              body: 'Add your photos, measurements, and rates. We build your comp card automatically — ready to share in minutes.',
+              title: 'Sign up and connect',
+              body: 'Create your MODL account and set up your creator profile. No agency access required — your OnlyFans login stays yours, always.',
             },
             {
               num: 'Step 02',
-              title: 'Apply to castings',
-              body: 'Browse verified jobs and apply directly. No agency decides for you. Full transparency on every application.',
+              title: 'Add your data',
+              body: 'Log your earnings, schedule your content, and import your fan list. Everything in one dashboard from day one.',
             },
             {
               num: 'Step 03',
-              title: 'Get booked, get paid',
-              body: 'Client pays through the platform before the shoot. You confirm the job done. Money hits your account within 24 hours.',
+              title: 'Run your business',
+              body: 'Track what\'s working, manage your top fans, and grow without giving 30–50% to someone who isn\'t doing much anyway.',
             },
           ].map((step, i) => (
             <div key={i} style={{
@@ -572,7 +541,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
+ 
       {/* FOR WHO */}
       <section style={{ ...s.section, paddingTop: 0 }}>
         <div style={{
@@ -582,21 +551,21 @@ export default function Home() {
           gap: 48, alignItems: 'center',
         }}>
           <div>
-            <p style={s.sectionLabel}>Who it's for</p>
+            <p style={s.sectionLabel}>Who it&apos;s for</p>
             <h2 style={{ ...s.h2, fontSize: 'clamp(28px, 4vw, 48px)', marginBottom: 16 }}>
-              Built for models who run their own career
+              Built for creators who are done being managed
             </h2>
             <p style={{ ...s.sectionSub, marginBottom: 0 }}>
-              Whether you're just starting out or walking away from a bad agency — MODL is your professional foundation.
+              Whether you&apos;re currently signed with an agency or considering one — MODL is the tool that makes going independent easy.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              'Aspiring models building their first portfolio',
-              'Freelance models managing their own bookings',
-              'Models leaving agencies and going independent',
-              'Content creators expanding into brand work',
-              'Models who value their privacy above everything',
+              'Creators currently signed with a management agency',
+              'Creators who feel underpaid or underserved by their agency',
+              'Solo creators overwhelmed by managing everything alone',
+              'Creators who have heard the horror stories and want to avoid agencies entirely',
+              'Anyone who wants their earnings data visible and owned by them',
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <span style={{ color: '#C9A96E', fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
@@ -606,78 +575,65 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+ 
       {/* PRICING */}
       <section id="pricing" style={s.section}>
         <div style={s.pricingWrap}>
           <div style={s.pricingLeft}>
             <p style={{ ...s.sectionLabel, color: '#8a7e6e' }}>Pricing</p>
             <h2 style={s.pricingH2}>One plan.<br />No hidden fees.</h2>
-            <p style={s.pricingBody}>Everything you need to run your modeling career like a business. No agency taking their cut month after month.</p>
-            <div style={s.price}>$30</div>
+            <p style={s.pricingBody}>
+              Everything you need to run your creator career like a business. No agency taking their cut month after month.
+            </p>
+            <div style={s.price}>£25</div>
             <p style={s.priceSub}>per month · cancel anytime</p>
-            <button style={s.pricingBtn}
+            <button
+              style={s.pricingBtn}
+              onClick={scrollToWaitlist}
               onMouseEnter={e => e.currentTarget.style.background = '#a8843e'}
               onMouseLeave={e => e.currentTarget.style.background = '#C9A96E'}
             >
-              <a href="#waitlist" style={{ color: 'inherit', textDecoration: 'none' }}>Join the Waitlist</a>
+              Join the Waitlist
             </button>
-            <p style={{ ...s.priceSub, marginTop: 16 }}>
-              + 10% commission on completed bookings only. Nothing else, ever.
-            </p>
           </div>
-          <ul style={s.featureList}>
+          <div style={s.pricingFeatureList}>
             {pricingFeatures.map((item, i) => (
-              <li key={i} style={s.featureItem}>
-                <span style={s.checkmark}>✓</span>
-                {item}
-              </li>
+              <div key={i} style={s.pricingFeatureItem}>
+                <span style={s.pricingCheck}>✓</span>
+                <span style={s.pricingFeatureText}>{item}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
-
+ 
       {/* FINAL CTA */}
-      <section id="waitlist" style={s.ctaSection}>
-        <div style={{
-          position: 'absolute', opacity: 0.05,
-          fontFamily: 'var(--font-display), Georgia, serif',
-          fontSize: 'clamp(80px, 15vw, 200px)',
-          fontWeight: 300, color: '#F5F0E8',
-          userSelect: 'none', pointerEvents: 'none',
-          letterSpacing: '0.2em',
-        }}>MODL</div>
-        <p style={{ ...s.sectionLabel, color: '#8a7e6e' }}>Early access</p>
-        <h2 style={s.ctaH2}>Be first.<br />Launch is coming soon.</h2>
-        <p style={s.ctaSub}>Join the waitlist and get 3 months free when we launch. We're onboarding the first 500 models personally.</p>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}>
-          <WaitlistForm which="cta" />
-          <p style={{ ...s.socialProof, color: '#333' }}>No spam · Just one email when we launch</p>
+      <section id="waitlist" style={{ ...s.section, textAlign: 'center', paddingTop: 0 }}>
+        <p style={s.sectionLabel}>Early access</p>
+        <h2 style={{ ...s.h2, maxWidth: 600, margin: '0 auto 16px' }}>
+          Be one of the first<br />10 creators on MODL
+        </h2>
+        <p style={{ ...s.sectionSub, margin: '0 auto 40px' }}>
+          We&apos;re onboarding our first creators manually and treating them like gold. Get in early and shape the product.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+          <WaitlistForm />
+          <p style={s.socialProof}>No spam · One email when we launch · Cancel anytime</p>
         </div>
       </section>
-
+ 
       {/* FOOTER */}
-      <footer style={s.footer}>
-        <span style={s.footerLogo}>MODL</span>
-        <div style={s.footerLinks}>
-          <a href="#" style={s.footerLink}>Privacy Policy</a>
-          <a href="#" style={s.footerLink}>Terms of Service</a>
-          <a href="mailto:hello@modl.so" style={s.footerLink}>Contact</a>
-        </div>
-        <span style={s.footerRight}>© 2025 MODL</span>
-      </footer>
-
-      {/* Mobile responsive overrides */}
-      <style>{`
-        @media (max-width: 768px) {
-          nav { padding: 16px 20px !important; }
-          nav a { display: none; }
-          .pricing-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 640px) {
-          .steps-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-  </div>
-)
+      <div style={{ borderTop: '1px solid #DDD8CE' }}>
+        <footer style={s.footer}>
+          <span style={s.footerLogo}>MODL</span>
+          <div style={s.footerLinks}>
+            <a href="#features" style={s.footerLink}>Features</a>
+            <a href="#pricing" style={s.footerLink}>Pricing</a>
+          </div>
+          <p style={s.footerCopy}>© {new Date().getFullYear()} MODL. Creator management software.</p>
+        </footer>
+      </div>
+ 
+    </div>
+  )
 }

@@ -43,14 +43,25 @@ The content is organized as follows:
 .gitignore
 AGENTS.md
 app/api/waitlist/route.ts
+app/dashboard/analytics/page.js
+app/dashboard/earnings/page.js
+app/dashboard/fans/page.js
+app/dashboard/layout.js
+app/dashboard/page.js
+app/dashboard/promotions/page.js
+app/dashboard/schedule/page.js
+app/dashboard/settings/page.js
 app/favicon.ico
 app/globals.css
 app/layout.js
+app/login/page.js
 app/page.js
 app/page.module.css
 CLAUDE.md
 eslint.config.mjs
-jsconfig.json
+lib/supabase-server.js
+lib/supabase.js
+middleware.js
 next.config.mjs
 package.json
 public/file.svg
@@ -59,10 +70,2321 @@ public/next.svg
 public/vercel.svg
 public/window.svg
 README.md
+tsconfig.json
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="app/dashboard/analytics/page.js">
+'use client'
+
+import { useState } from 'react'
+
+const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF' }
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+}
+
+const growthData = [
+  { month: 'Oct', subs: 180 },
+  { month: 'Nov', subs: 210 },
+  { month: 'Dec', subs: 245 },
+  { month: 'Jan', subs: 262 },
+  { month: 'Feb', subs: 289 },
+  { month: 'Mar', subs: 312 },
+]
+
+const postPerformance = [
+  { title: 'Exclusive video drop', date: '3 Mar', likes: 142, comments: 38, revenue: '£216' },
+  { title: 'BTS photo set', date: '10 Mar', likes: 128, comments: 24, revenue: '£168' },
+  { title: 'Weekend special PPV', date: '22 Mar', likes: 96, comments: 19, revenue: '£240' },
+  { title: 'Story update', date: '25 Mar', likes: 74, comments: 12, revenue: '£0' },
+  { title: 'Fan request content', date: '27 Mar', likes: 111, comments: 31, revenue: '£132' },
+]
+
+const postingTimes = [
+  { time: '6am–9am', score: 22 },
+  { time: '9am–12pm', score: 38 },
+  { time: '12pm–3pm', score: 45 },
+  { time: '3pm–6pm', score: 62 },
+  { time: '6pm–9pm', score: 91 },
+  { time: '9pm–12am', score: 78 },
+  { time: '12am–3am', score: 34 },
+]
+
+const maxGrowth = Math.max(...growthData.map(d => d.subs))
+const maxTime = Math.max(...postingTimes.map(d => d.score))
+
+export default function AnalyticsPage() {
+  const [period, setPeriod] = useState('6m')
+
+  return (
+    <div style={s.page}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div>
+          <p style={s.pageTitle}>Analytics</p>
+          <p style={s.pageSubtitle}>The data your agency was hiding from you.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['1m', '3m', '6m', '1y'].map(p => (
+            <button key={p} onClick={() => setPeriod(p)} style={{
+              fontFamily: 'var(--font-body)', fontSize: 12, padding: '6px 14px', borderRadius: 8,
+              border: `1px solid ${period === p ? c.gold : c.border}`,
+              background: period === p ? c.gold : 'transparent',
+              color: period === p ? c.black : c.muted, cursor: 'pointer',
+            }}>{p}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Key metrics */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {[
+          { label: 'Total subscribers', value: '312', change: '+8.0%', up: true },
+          { label: 'Churn rate', value: '4.2%', change: '-0.8%', up: true },
+          { label: 'Avg fan value', value: '£9.10', change: '+£0.40', up: true },
+          { label: 'Content posts', value: '24', change: 'this month', neutral: true },
+          { label: 'Avg engagement', value: '38%', change: '+4%', up: true },
+        ].map((stat, i) => (
+          <div key={i} style={s.card}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, display: 'block', marginBottom: 8 }}>{stat.label}</span>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 400, color: c.black, lineHeight: 1, marginBottom: 6 }}>{stat.value}</p>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: stat.neutral ? c.muted : stat.up ? '#4a8a5f' : '#c05050' }}>
+              {stat.neutral ? stat.change : (stat.up ? '↑ ' : '↓ ') + stat.change}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 28 }}>
+
+        {/* Subscriber growth chart */}
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 4 }}>Subscriber growth</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted, marginBottom: 24 }}>Last 6 months</p>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 120 }}>
+            {growthData.map((d, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: c.black, fontWeight: 500 }}>{d.subs}</span>
+                <div style={{
+                  width: '100%',
+                  height: `${(d.subs / maxGrowth) * 90}px`,
+                  background: i === growthData.length - 1 ? c.gold : '#EDE8DF',
+                  borderRadius: '4px 4px 0 0',
+                }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted }}>{d.month}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20, padding: '14px 0', borderTop: `1px solid ${c.border}` }}>
+            <div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, marginBottom: 2 }}>6-month growth</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: '#4a8a5f' }}>+73%</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, marginBottom: 2 }}>Avg new subs/month</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: c.black }}>22</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Optimal posting times */}
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 4 }}>Best posting times</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted, marginBottom: 24 }}>Engagement score by hour</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {postingTimes.map((slot, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, width: 80, flexShrink: 0 }}>{slot.time}</span>
+                <div style={{ flex: 1, height: 8, background: c.border, borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${(slot.score / maxTime) * 100}%`,
+                    background: slot.score === maxTime ? c.gold : slot.score >= 70 ? '#a8843e' : '#DDD8CE',
+                    borderRadius: 4,
+                  }} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: slot.score === maxTime ? c.gold : c.muted, width: 24, textAlign: 'right', fontWeight: slot.score === maxTime ? 500 : 400 }}>{slot.score}</span>
+                {slot.score === maxTime && <span style={{ fontSize: 10, color: c.gold }}>★</span>}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16, padding: '12px 14px', background: c.surface, borderRadius: 10 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.black }}>
+              📍 Peak time: <strong style={{ color: c.gold }}>6pm–9pm</strong> — Post your best content here.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top performing content */}
+      <div style={s.card}>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 20 }}>Top performing content</p>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Post', 'Date', 'Likes', 'Comments', 'Revenue'].map(h => (
+                <th key={h} style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.muted, textAlign: 'left', padding: '0 0 12px', fontWeight: 400 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {postPerformance.sort((a, b) => b.likes - a.likes).map((row, i) => (
+              <tr key={i} style={{ borderTop: `1px solid ${c.border}` }}>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: c.black, padding: '14px 0' }}>{row.title}</td>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted, padding: '14px 0' }}>{row.date}</td>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: c.black, padding: '14px 0' }}>{row.likes}</td>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: c.black, padding: '14px 0' }}>{row.comments}</td>
+                <td style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: row.revenue === '£0' ? c.muted : '#4a8a5f', padding: '14px 0' }}>{row.revenue}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Churn insight */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 20 }}>
+        <div style={{ ...s.card, background: c.black }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: '#F5F0E8', marginBottom: 8 }}>Churn insight</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e', marginBottom: 20, lineHeight: 1.6 }}>
+            You&apos;re losing ~13 subscribers per month. At your current avg fan value of £9.10, that&apos;s <span style={{ color: c.gold }}>£118/month</span> slipping away.
+          </p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e', lineHeight: 1.6 }}>
+            Fans that lapse most often: those who <span style={{ color: '#F5F0E8' }}>subscribed in the last 30 days</span>. Consider a welcome sequence.
+          </p>
+        </div>
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 16 }}>Retention rate</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+              <svg viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="45" cy="45" r="36" fill="none" stroke={c.border} strokeWidth="8" />
+                <circle cx="45" cy="45" r="36" fill="none" stroke={c.gold} strokeWidth="8"
+                  strokeDasharray={`${0.958 * 2 * Math.PI * 36} ${2 * Math.PI * 36}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: 18, color: c.black }}>95.8%</span>
+            </div>
+            <div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, marginBottom: 4 }}>Monthly retention</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, lineHeight: 1.6 }}>Strong. Industry avg is around 85–90%. You&apos;re above that.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/earnings/page.js">
+'use client'
+
+import { useState } from 'react'
+
+const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF' }
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+  label: { fontFamily: 'var(--font-body), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, marginBottom: 8, display: 'block' },
+  value: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 36, fontWeight: 400, color: c.black, lineHeight: 1 },
+  tag: (color) => ({
+    fontFamily: 'var(--font-body)', fontSize: 11, padding: '3px 10px', borderRadius: 20,
+    background: color === 'green' ? '#eaf5ee' : color === 'blue' ? '#eaf0f8' : '#fdf3e6',
+    color: color === 'green' ? '#4a8a5f' : color === 'blue' ? '#4a6fa8' : '#a07828',
+  }),
+  input: {
+    fontFamily: 'var(--font-body)', fontSize: 14, padding: '10px 14px',
+    border: `1px solid ${c.border}`, borderRadius: 8, background: c.cream,
+    color: c.black, outline: 'none', width: '100%',
+  },
+  btn: {
+    fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500,
+    background: c.gold, color: c.black, border: 'none', borderRadius: 8,
+    padding: '10px 20px', cursor: 'pointer', whiteSpace: 'nowrap',
+  },
+}
+
+const entries = [
+  { date: '29 Mar', type: 'Subscription', fan: 'fan_blue22', amount: 12.00 },
+  { date: '29 Mar', type: 'Tip', fan: 'fan_x99', amount: 25.00 },
+  { date: '28 Mar', type: 'PPV', fan: 'fan_rose7', amount: 18.00 },
+  { date: '28 Mar', type: 'Subscription', fan: 'fan_dark11', amount: 12.00 },
+  { date: '27 Mar', type: 'Tip', fan: 'fan_x99', amount: 50.00 },
+  { date: '27 Mar', type: 'PPV', fan: 'fan_nova3', amount: 8.00 },
+  { date: '26 Mar', type: 'Subscription', fan: 'fan_zee', amount: 12.00 },
+  { date: '25 Mar', type: 'PPV', fan: 'fan_blue22', amount: 18.00 },
+]
+
+const typeColor = { Subscription: 'blue', Tip: 'green', PPV: 'amber' }
+
+const months = [
+  { month: 'Jan', subs: 980, ppv: 420, tips: 140 },
+  { month: 'Feb', subs: 1100, ppv: 560, tips: 210 },
+  { month: 'Mar', subs: 1620, ppv: 840, tips: 380 },
+]
+
+export default function EarningsPage() {
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ date: '', type: 'Subscription', fan: '', amount: '' })
+  const [filter, setFilter] = useState('All')
+
+  const filtered = filter === 'All' ? entries : entries.filter(e => e.type === filter)
+  const total = entries.reduce((a, b) => a + b.amount, 0)
+  const subs = entries.filter(e => e.type === 'Subscription').reduce((a, b) => a + b.amount, 0)
+  const ppv = entries.filter(e => e.type === 'PPV').reduce((a, b) => a + b.amount, 0)
+  const tips = entries.filter(e => e.type === 'Tip').reduce((a, b) => a + b.amount, 0)
+
+  return (
+    <div style={s.page}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div>
+          <p style={s.pageTitle}>Earnings</p>
+          <p style={s.pageSubtitle}>Every pound in one place.</p>
+        </div>
+        <button style={s.btn} onClick={() => setShowForm(v => !v)}>
+          {showForm ? 'Cancel' : '+ Log earning'}
+        </button>
+      </div>
+
+      {/* Log form */}
+      {showForm && (
+        <div style={{ ...s.card, marginBottom: 24, background: c.surface }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 16 }}>New entry</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+            <div>
+              <label style={s.label}>Date</label>
+              <input type="date" style={s.input} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Type</label>
+              <select style={s.input} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option>Subscription</option><option>PPV</option><option>Tip</option>
+              </select>
+            </div>
+            <div>
+              <label style={s.label}>Fan handle</label>
+              <input style={s.input} placeholder="fan_name" value={form.fan} onChange={e => setForm(f => ({ ...f, fan: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Amount (£)</label>
+              <input type="number" style={s.input} placeholder="0.00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+            </div>
+          </div>
+          <button style={{ ...s.btn, marginTop: 16 }}>Save entry</button>
+        </div>
+      )}
+
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {[
+          { label: 'Total (this month)', value: `£${total.toFixed(2)}` },
+          { label: 'Subscriptions', value: `£${subs.toFixed(2)}` },
+          { label: 'Pay-per-view', value: `£${ppv.toFixed(2)}` },
+          { label: 'Tips', value: `£${tips.toFixed(2)}` },
+        ].map((stat, i) => (
+          <div key={i} style={s.card}>
+            <span style={s.label}>{stat.label}</span>
+            <p style={s.value}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 28 }}>
+        {/* Monthly trend */}
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 20 }}>Monthly trend</p>
+          <div style={{ display: 'flex', gap: 20 }}>
+            {months.map((m, i) => {
+              const total = m.subs + m.ppv + m.tips
+              const max = 2840
+              return (
+                <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ height: 100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 2, marginBottom: 8 }}>
+                    <div style={{ height: `${(m.tips / max) * 100}%`, background: '#f0c070', borderRadius: '2px 2px 0 0' }} />
+                    <div style={{ height: `${(m.ppv / max) * 100}%`, background: c.gold }} />
+                    <div style={{ height: `${(m.subs / max) * 100}%`, background: '#5a8a6f' }} />
+                  </div>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted }}>{m.month}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.black, fontWeight: 500 }}>£{total}</p>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+            {[{ label: 'Subs', color: '#5a8a6f' }, { label: 'PPV', color: c.gold }, { label: 'Tips', color: '#f0c070' }].map((l, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: l.color }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted }}>{l.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Projected */}
+        <div style={{ ...s.card, background: c.black }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: '#F5F0E8', marginBottom: 8 }}>Projected earnings</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e', marginBottom: 24 }}>Based on current growth rate</p>
+          {[
+            { label: 'Next month', value: '£3,180' },
+            { label: '3 months', value: '£10,200' },
+            { label: '12 months', value: '£45,600' },
+          ].map((row, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < 2 ? '1px solid #1e1e1e' : 'none' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e' }}>{row.label}</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: c.gold }}>{row.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Entries table */}
+      <div style={s.card}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black }}>Entries</p>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['All', 'Subscription', 'PPV', 'Tip'].map(f => (
+              <button key={f} onClick={() => setFilter(f)} style={{
+                fontFamily: 'var(--font-body)', fontSize: 12, padding: '5px 12px', borderRadius: 20,
+                border: `1px solid ${filter === f ? c.gold : c.border}`,
+                background: filter === f ? c.gold : 'transparent',
+                color: filter === f ? c.black : c.muted, cursor: 'pointer',
+              }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Date', 'Type', 'Fan', 'Amount'].map(h => (
+                <th key={h} style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.muted, textAlign: 'left', padding: '0 0 12px', fontWeight: 400 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row, i) => (
+              <tr key={i} style={{ borderTop: `1px solid ${c.border}` }}>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted, padding: '12px 0' }}>{row.date}</td>
+                <td style={{ padding: '12px 0' }}><span style={s.tag(typeColor[row.type])}>{row.type}</span></td>
+                <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 0' }}>{row.fan}</td>
+                <td style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: c.black, padding: '12px 0', textAlign: 'right' }}>£{row.amount.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/fans/page.js">
+'use client'
+
+import { useState } from 'react'
+
+const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF' }
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+  input: { fontFamily: 'var(--font-body)', fontSize: 14, padding: '10px 14px', border: `1px solid ${c.border}`, borderRadius: 8, background: c.cream, color: c.black, outline: 'none', width: '100%' },
+  label: { fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, marginBottom: 6, display: 'block' },
+  btn: { fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, background: c.gold, color: c.black, border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer' },
+}
+
+const fans = [
+  { handle: 'fan_x99', spent: 284, subMonths: 8, flagged: true, priority: true, note: 'Big tipper — sends £25+ regularly. Always responds to PPV.', lastActive: '2h ago', tags: ['big tipper', 'PPV buyer'] },
+  { handle: 'fan_blue22', spent: 156, subMonths: 5, flagged: false, priority: true, note: 'Buys every PPV. Prefers photo sets.', lastActive: '1d ago', tags: ['PPV buyer'] },
+  { handle: 'fan_rose7', spent: 132, subMonths: 4, flagged: false, priority: false, note: '', lastActive: '3d ago', tags: [] },
+  { handle: 'fan_nova3', spent: 96, subMonths: 3, flagged: false, priority: false, note: 'Mentioned he\'s a nurse — night shift. Post later in the evening.', lastActive: '5d ago', tags: [] },
+  { handle: 'fan_dark11', spent: 84, subMonths: 6, flagged: true, priority: false, note: 'Sometimes rude. Keep interactions brief.', lastActive: '1d ago', tags: ['handle with care'] },
+  { handle: 'fan_zee', spent: 60, subMonths: 2, flagged: false, priority: false, note: '', lastActive: '2d ago', tags: [] },
+]
+
+const templates = [
+  { label: 'Welcome new sub', text: 'Hey! So glad you\'re here 🖤 Let me know if you have any requests — I love hearing from my fans.' },
+  { label: 'PPV follow-up', text: 'Hope you enjoyed that one! I have more dropping soon — keep an eye out 👀' },
+  { label: 'Re-engage lapsed fan', text: 'Hey, missed you! I have some really good content this week if you want to check it out.' },
+  { label: 'Thank you tip', text: 'That tip honestly made my day, thank you so much! You\'re one of my favourites 🙏' },
+]
+
+export default function FansPage() {
+  const [selectedFan, setSelectedFan] = useState(null)
+  const [search, setSearch] = useState('')
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [copiedIdx, setCopiedIdx] = useState(null)
+
+  const filtered = fans.filter(f => f.handle.includes(search.toLowerCase()))
+  const fan = selectedFan !== null ? fans.find(f => f.handle === selectedFan) : null
+
+  const copyTemplate = (text, i) => {
+    navigator.clipboard.writeText(text)
+    setCopiedIdx(i)
+    setTimeout(() => setCopiedIdx(null), 1500)
+  }
+
+  return (
+    <div style={s.page}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div>
+          <p style={s.pageTitle}>Fan CRM</p>
+          <p style={s.pageSubtitle}>Know your fans. Never burn out.</p>
+        </div>
+        <button style={s.btn} onClick={() => setShowTemplates(v => !v)}>
+          {showTemplates ? 'Hide templates' : 'Message templates'}
+        </button>
+      </div>
+
+      {/* Templates panel */}
+      {showTemplates && (
+        <div style={{ ...s.card, marginBottom: 24, background: c.surface }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 16 }}>Message templates</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+            {templates.map((t, i) => (
+              <div key={i} style={{ background: '#fff', border: `1px solid ${c.border}`, borderRadius: 10, padding: '14px 16px' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>{t.label}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, lineHeight: 1.5, marginBottom: 10 }}>{t.text}</p>
+                <button
+                  onClick={() => copyTemplate(t.text, i)}
+                  style={{ fontFamily: 'var(--font-body)', fontSize: 11, padding: '5px 12px', borderRadius: 6, border: `1px solid ${c.border}`, background: 'transparent', color: copiedIdx === i ? '#4a8a5f' : c.muted, cursor: 'pointer' }}
+                >
+                  {copiedIdx === i ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {[
+          { label: 'Total fans', value: fans.length },
+          { label: 'Priority fans', value: fans.filter(f => f.priority).length },
+          { label: 'Flagged', value: fans.filter(f => f.flagged).length },
+          { label: 'Avg spend', value: `£${Math.round(fans.reduce((a, b) => a + b.spent, 0) / fans.length)}` },
+        ].map((stat, i) => (
+          <div key={i} style={s.card}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, display: 'block', marginBottom: 6 }}>{stat.label}</span>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 400, color: c.black }}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: fan ? '1fr 340px' : '1fr', gap: 20 }}>
+        {/* Fan list */}
+        <div style={s.card}>
+          <div style={{ marginBottom: 16 }}>
+            <input
+              style={s.input}
+              placeholder="Search fans..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {filtered.map((f, i) => (
+              <div
+                key={f.handle}
+                onClick={() => setSelectedFan(f.handle === selectedFan ? null : f.handle)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '14px 12px', borderRadius: 10, cursor: 'pointer',
+                  background: selectedFan === f.handle ? '#fff8ef' : 'transparent',
+                  border: `1px solid ${selectedFan === f.handle ? c.gold : 'transparent'}`,
+                  marginBottom: 4,
+                  transition: 'background 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: f.priority ? c.gold : c.surface,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: f.priority ? c.black : c.muted, fontWeight: 500 }}>
+                      {f.handle.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: c.black, margin: '0 0 2px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {f.handle}
+                      {f.priority && <span style={{ fontSize: 10, color: c.gold }}>★ Priority</span>}
+                      {f.flagged && <span style={{ fontSize: 10, color: '#c05050', background: '#fde8e8', padding: '1px 6px', borderRadius: 10 }}>⚠ Flagged</span>}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, margin: 0 }}>
+                      {f.subMonths} months · Last active {f.lastActive}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: c.black, margin: '0 0 2px' }}>£{f.spent}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, margin: 0 }}>total spent</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Fan detail panel */}
+        {fan && (
+          <div style={s.card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 400, color: c.black, marginBottom: 2 }}>{fan.handle}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted }}>Active {fan.lastActive}</p>
+              </div>
+              <button onClick={() => setSelectedFan(null)} style={{ background: 'none', border: 'none', color: c.muted, cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              {[
+                { label: 'Total spent', value: `£${fan.spent}` },
+                { label: 'Subscribed', value: `${fan.subMonths} months` },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${c.border}` }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted }}>{row.label}</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: c.black }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {fan.tags.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Tags</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {fan.tags.map((tag, i) => (
+                    <span key={i} style={{ fontFamily: 'var(--font-body)', fontSize: 11, padding: '3px 10px', borderRadius: 20, background: c.surface, color: c.muted }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Notes</p>
+              <textarea
+                defaultValue={fan.note}
+                placeholder="Add a note about this fan..."
+                style={{ ...s.input, height: 90, resize: 'none', lineHeight: 1.5 }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={s.btn}>Save note</button>
+              <button style={{ ...s.btn, background: 'transparent', border: `1px solid ${c.border}`, color: c.muted }}>
+                {fan.priority ? 'Remove priority' : '★ Mark priority'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/layout.js">
+'use client'
+
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Playfair_Display, Inter } from 'next/font/google'
+import '../globals.css'
+import { createClient } from '@/lib/supabase'
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-display' })
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-body' })
+
+const nav = [
+  { href: '/dashboard', label: 'Overview', icon: <OverviewIcon /> },
+  { href: '/dashboard/earnings', label: 'Earnings', icon: <EarningsIcon /> },
+  { href: '/dashboard/schedule', label: 'Schedule', icon: <ScheduleIcon /> },
+  { href: '/dashboard/fans', label: 'Fan CRM', icon: <FansIcon /> },
+  { href: '/dashboard/promotions', label: 'Promotions', icon: <PromoIcon /> },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
+  { href: '/dashboard/settings', label: 'Settings', icon: <SettingsIcon /> },
+]
+
+function Icon({ children }) {
+  return <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, flexShrink: 0 }}>{children}</span>
+}
+
+function OverviewIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/></svg></Icon>
+}
+function EarningsIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 4.5v7M6 6.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5S9.1 8 8 8s-2 .7-2 1.5S6.9 11 8 11s2-.7 2-1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></Icon>
+}
+function ScheduleIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke="currentColor" strokeWidth="1.2"/><path d="M1.5 6.5h13M5 1.5v3M11 1.5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></Icon>
+}
+function FansIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1 13c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M11 7.5c1.5.3 3 1.3 3 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="11.5" cy="4.5" r="1.8" stroke="currentColor" strokeWidth="1.2"/></svg></Icon>
+}
+function PromoIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 10.5L13 3l-2.5 11-3-4-5.5.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M7.5 10l2-2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></Icon>
+}
+function AnalyticsIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12L5.5 7.5l3 2.5L12 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="4.5" r="1.5" fill="currentColor"/></svg></Icon>
+}
+function SettingsIcon() {
+  return <Icon><svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
+    <path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.1 3.1l.7.7M12.2 12.2l.7.7M12.9 3.1l-.7.7M3.8 12.2l-.7.7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+  </svg></Icon>
+}
+
+export default function DashboardLayout({ children }) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [collapsed, setCollapsed] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+  }, [])
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  const initial = user?.email?.[0]?.toUpperCase() ?? '?'
+  const emailDisplay = user?.email ?? ''
+
+  return (
+    <div className={`${playfair.variable} ${inter.variable}`} style={{ display: 'flex', minHeight: '100vh', background: '#F5F0E8' }}>
+
+      {/* Sidebar */}
+      <aside style={{
+        width: collapsed ? 64 : 220,
+        minHeight: '100vh',
+        background: '#0e0e0e',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: collapsed ? '28px 0' : '28px 0',
+        transition: 'width 0.22s ease',
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        alignSelf: 'flex-start',
+        height: '100vh',
+        overflow: 'hidden',
+      }}>
+        {/* Logo */}
+        <div style={{ padding: collapsed ? '0 0 28px' : '0 24px 28px', display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between' }}>
+          {!collapsed && (
+            <span style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: 20, fontWeight: 500, letterSpacing: '0.2em', color: '#F5F0E8' }}>MODL</span>
+          )}
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a7e6e', padding: 4, display: 'flex', alignItems: 'center' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d={collapsed ? 'M5 3l6 5-6 5' : 'M11 3L5 8l6 5'} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: '#1e1e1e', marginBottom: 16 }} />
+
+        {/* Nav */}
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: collapsed ? '0 8px' : '0 12px' }}>
+          {nav.map(item => {
+            const active = pathname === item.href
+            return (
+              <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: collapsed ? '10px 0' : '10px 12px',
+                  borderRadius: 8,
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  background: active ? '#1a1a1a' : 'transparent',
+                  color: active ? '#C9A96E' : '#8a7e6e',
+                  transition: 'all 0.15s',
+                  cursor: 'pointer',
+                }}>
+                  {item.icon}
+                  {!collapsed && (
+                    <span style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: 13, fontWeight: active ? 500 : 400, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                      {item.label}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Bottom — real user + sign out */}
+        <div style={{ padding: collapsed ? '16px 8px 0' : '16px 12px 0', borderTop: '1px solid #1e1e1e' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: collapsed ? '8px 0' : '8px 12px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#C9A96E', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: '#0e0e0e', fontWeight: 500 }}>{initial}</span>
+            </div>
+            {!collapsed && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#F5F0E8', margin: 0, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emailDisplay}</p>
+                <button onClick={handleSignOut} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#8a7e6e', background: 'none', border: 'none', padding: 0, cursor: 'pointer', marginTop: 2 }}>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main style={{ flex: 1, minHeight: '100vh', overflow: 'auto' }}>
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/page.js">
+'use client'
+
+const c = {
+  cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e',
+  muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF',
+}
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 },
+  grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+  cardLabel: { fontFamily: 'var(--font-body), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, marginBottom: 8 },
+  cardValue: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 36, fontWeight: 400, color: c.black, lineHeight: 1 },
+  cardChange: { fontFamily: 'var(--font-body), sans-serif', fontSize: 12, marginTop: 6 },
+  sectionTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 16 },
+}
+
+const stats = [
+  { label: 'Monthly Revenue', value: '£2,840', change: '+12%', up: true },
+  { label: 'Subscribers', value: '312', change: '+8 this week', up: true },
+  { label: 'Avg Fan Value', value: '£9.10', change: '+£0.40', up: true },
+  { label: 'Churn Rate', value: '4.2%', change: '-0.8%', up: true },
+]
+
+const recentActivity = [
+  { action: 'New subscriber', detail: 'fan_x99', time: '2 min ago' },
+  { action: 'PPV purchased', detail: '£12.00 tip received', time: '14 min ago' },
+  { action: 'Post scheduled', detail: 'Tuesday 7pm', time: '1 hr ago' },
+  { action: 'Promotion logged', detail: 'Reddit r/onlyfans101', time: '3 hr ago' },
+  { action: 'New subscriber', detail: 'fan_blue22', time: '5 hr ago' },
+]
+
+const quickActions = [
+  { label: 'Log earnings', href: '/dashboard/earnings' },
+  { label: 'Schedule a post', href: '/dashboard/schedule' },
+  { label: 'Add a promotion', href: '/dashboard/promotions' },
+  { label: 'View analytics', href: '/dashboard/analytics' },
+]
+
+// Simple bar chart using divs
+const weeklyData = [
+  { day: 'Mon', value: 320 },
+  { day: 'Tue', value: 480 },
+  { day: 'Wed', value: 390 },
+  { day: 'Thu', value: 610 },
+  { day: 'Fri', value: 540 },
+  { day: 'Sat', value: 720 },
+  { day: 'Sun', value: 490 },
+]
+const maxVal = Math.max(...weeklyData.map(d => d.value))
+
+export default function DashboardPage() {
+  return (
+    <div style={s.page}>
+      <p style={s.pageTitle}>Good morning</p>
+      <p style={s.pageSubtitle}>Here&apos;s how your account is performing.</p>
+
+      {/* Stats */}
+      <div style={s.grid4}>
+        {stats.map((stat, i) => (
+          <div key={i} style={s.card}>
+            <p style={s.cardLabel}>{stat.label}</p>
+            <p style={s.cardValue}>{stat.value}</p>
+            <p style={{ ...s.cardChange, color: stat.up ? '#5a9e6f' : '#c0392b' }}>
+              {stat.up ? '↑' : '↓'} {stat.change}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div style={s.grid2}>
+        {/* Weekly revenue chart */}
+        <div style={s.card}>
+          <p style={s.sectionTitle}>This week</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 100 }}>
+            {weeklyData.map((d, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
+                <div style={{
+                  width: '100%',
+                  height: `${(d.value / maxVal) * 80}px`,
+                  background: i === 5 ? c.gold : c.border,
+                  borderRadius: 4,
+                  transition: 'background 0.2s',
+                }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted }}>{d.day}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, marginTop: 12 }}>
+            £{weeklyData.reduce((a, b) => a + b.value, 0).toLocaleString()} total this week
+          </p>
+        </div>
+
+        {/* Recent activity */}
+        <div style={s.card}>
+          <p style={s.sectionTitle}>Recent activity</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {recentActivity.map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '11px 0',
+                borderBottom: i < recentActivity.length - 1 ? `1px solid ${c.border}` : 'none',
+              }}>
+                <div>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, margin: 0 }}>{item.action}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, margin: 0 }}>{item.detail}</p>
+                </div>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, whiteSpace: 'nowrap', marginLeft: 12 }}>{item.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ ...s.card, background: c.black }}>
+          <p style={{ ...s.sectionTitle, color: '#F5F0E8' }}>Quick actions</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {quickActions.map((a, i) => (
+              <a key={i} href={a.href} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '12px 16px', borderRadius: 10,
+                  border: '1px solid #1e1e1e',
+                  transition: 'border-color 0.15s, background 0.15s',
+                  cursor: 'pointer',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.borderColor = c.gold }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#1e1e1e' }}
+                >
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#F5F0E8' }}>{a.label}</span>
+                  <span style={{ color: c.gold, fontSize: 14 }}>→</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Earnings breakdown */}
+        <div style={s.card}>
+          <p style={s.sectionTitle}>Earnings breakdown</p>
+          {[
+            { label: 'Subscriptions', value: '£1,620', pct: 57 },
+            { label: 'Pay-per-view', value: '£840', pct: 30 },
+            { label: 'Tips', value: '£380', pct: 13 },
+          ].map((row, i) => (
+            <div key={i} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black }}>{row.label}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted }}>{row.value}</span>
+              </div>
+              <div style={{ height: 4, borderRadius: 4, background: c.border, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${row.pct}%`, background: c.gold, borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/promotions/page.js">
+'use client'
+
+import { useState } from 'react'
+
+const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF' }
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+  input: { fontFamily: 'var(--font-body)', fontSize: 14, padding: '10px 14px', border: `1px solid ${c.border}`, borderRadius: 8, background: c.cream, color: c.black, outline: 'none', width: '100%' },
+  label: { fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, marginBottom: 6, display: 'block' },
+  btn: { fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, background: c.gold, color: c.black, border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer' },
+}
+
+const promos = [
+  { date: '20 Mar', type: 'Shoutout', platform: 'Instagram', partner: '@creator_tips', spent: 150, gained: 28, converted: 14, note: 'Micro influencer in OF tips niche. High conversion.' },
+  { date: '15 Mar', type: 'Reddit', platform: 'Reddit', partner: 'r/onlyfans101', spent: 0, gained: 42, converted: 8, note: 'Free post. Decent reach, low conversion as expected.' },
+  { date: '10 Mar', type: 'Collab', platform: 'OnlyFans', partner: '@creator_rose', spent: 0, gained: 19, converted: 11, note: 'Mutual shoutout. Good ROI.' },
+  { date: '5 Mar', type: 'Shoutout', platform: 'Twitter/X', partner: '@x_creator', spent: 80, gained: 11, converted: 2, note: 'Poor conversion. Twitter audience doesn\'t convert well.' },
+  { date: '1 Mar', type: 'Reddit', platform: 'Reddit', partner: 'r/onlyfansadvice', spent: 0, gained: 31, converted: 5, note: 'Free post. Solid reach.' },
+]
+
+const typeColor = { Shoutout: '#eaf0f8', Reddit: '#fdf3e6', Collab: '#eaf5ee' }
+const typeText = { Shoutout: '#4a6fa8', Reddit: '#a07828', Collab: '#4a8a5f' }
+
+export default function PromotionsPage() {
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ date: '', type: 'Shoutout', platform: '', partner: '', spent: '', gained: '', converted: '', note: '' })
+
+  const totalSpent = promos.reduce((a, b) => a + b.spent, 0)
+  const totalGained = promos.reduce((a, b) => a + b.gained, 0)
+  const totalConverted = promos.reduce((a, b) => a + b.converted, 0)
+  const roi = totalSpent > 0 ? ((totalConverted * 25) / totalSpent * 100).toFixed(0) : '∞'
+
+  const bestPromo = [...promos].sort((a, b) => b.converted - a.converted)[0]
+
+  return (
+    <div style={s.page}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div>
+          <p style={s.pageTitle}>Promotions</p>
+          <p style={s.pageSubtitle}>Track what works. Stop wasting money.</p>
+        </div>
+        <button style={s.btn} onClick={() => setShowForm(v => !v)}>
+          {showForm ? 'Cancel' : '+ Log promotion'}
+        </button>
+      </div>
+
+      {/* Log form */}
+      {showForm && (
+        <div style={{ ...s.card, marginBottom: 24, background: c.surface }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 16 }}>New promotion</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+            <div>
+              <label style={s.label}>Date</label>
+              <input type="date" style={s.input} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Type</label>
+              <select style={s.input} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option>Shoutout</option><option>Reddit</option><option>Collab</option>
+              </select>
+            </div>
+            <div>
+              <label style={s.label}>Platform</label>
+              <input style={s.input} placeholder="Instagram, Reddit..." value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Partner / Post</label>
+              <input style={s.input} placeholder="@handle or r/sub" value={form.partner} onChange={e => setForm(f => ({ ...f, partner: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Amount spent (£)</label>
+              <input type="number" style={s.input} placeholder="0" value={form.spent} onChange={e => setForm(f => ({ ...f, spent: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>New followers</label>
+              <input type="number" style={s.input} placeholder="0" value={form.gained} onChange={e => setForm(f => ({ ...f, gained: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Converted to subs</label>
+              <input type="number" style={s.input} placeholder="0" value={form.converted} onChange={e => setForm(f => ({ ...f, converted: e.target.value }))} />
+            </div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={s.label}>Notes</label>
+              <input style={s.input} placeholder="Did it work? Would you do it again?" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+            </div>
+          </div>
+          <button style={{ ...s.btn, marginTop: 16 }}>Save promotion</button>
+        </div>
+      )}
+
+      {/* Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
+        {[
+          { label: 'Total spent', value: `£${totalSpent}` },
+          { label: 'Followers gained', value: totalGained },
+          { label: 'Converted to subs', value: totalConverted },
+          { label: 'Est. ROI', value: `${roi}%` },
+        ].map((stat, i) => (
+          <div key={i} style={s.card}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, display: 'block', marginBottom: 8 }}>{stat.label}</span>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 400, color: i === 3 ? '#4a8a5f' : c.black, lineHeight: 1 }}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 28 }}>
+        {/* Best performer */}
+        <div style={{ ...s.card, background: c.black }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8a7e6e', marginBottom: 8 }}>Best performer</p>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: '#F5F0E8', marginBottom: 4 }}>{bestPromo.partner}</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e', marginBottom: 20 }}>{bestPromo.platform} · {bestPromo.type}</p>
+          <div style={{ display: 'flex', gap: 20 }}>
+            {[
+              { label: 'Spent', value: bestPromo.spent > 0 ? `£${bestPromo.spent}` : 'Free' },
+              { label: 'Gained', value: bestPromo.gained },
+              { label: 'Converted', value: bestPromo.converted },
+            ].map((s, i) => (
+              <div key={i}>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: c.gold, lineHeight: 1 }}>{s.value}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#8a7e6e' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Conversion by type */}
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 16 }}>Conversion by type</p>
+          {['Shoutout', 'Reddit', 'Collab'].map(type => {
+            const items = promos.filter(p => p.type === type)
+            const gained = items.reduce((a, b) => a + b.gained, 0)
+            const converted = items.reduce((a, b) => a + b.converted, 0)
+            const rate = gained > 0 ? ((converted / gained) * 100).toFixed(0) : 0
+            return (
+              <div key={type} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black }}>{type}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted }}>{rate}% conversion</span>
+                </div>
+                <div style={{ height: 6, borderRadius: 4, background: c.border, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${rate}%`, background: typeColor[type] ? typeText[type] : c.gold, borderRadius: 4, opacity: 0.8 }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Promotions table */}
+      <div style={s.card}>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 20 }}>All promotions</p>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+            <thead>
+              <tr>
+                {['Date', 'Type', 'Partner', 'Spent', 'Gained', 'Converted', 'Rate', 'Notes'].map(h => (
+                  <th key={h} style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.muted, textAlign: 'left', padding: '0 12px 12px 0', fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {promos.map((row, i) => {
+                const rate = row.gained > 0 ? ((row.converted / row.gained) * 100).toFixed(0) : 0
+                return (
+                  <tr key={i} style={{ borderTop: `1px solid ${c.border}` }}>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.muted, padding: '12px 12px 12px 0', whiteSpace: 'nowrap' }}>{row.date}</td>
+                    <td style={{ padding: '12px 12px 12px 0' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, padding: '3px 8px', borderRadius: 10, background: typeColor[row.type], color: typeText[row.type] }}>{row.type}</span>
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0', whiteSpace: 'nowrap' }}>{row.partner}</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.spent > 0 ? `£${row.spent}` : '—'}</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.gained}</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.converted}</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: rate >= 40 ? '#4a8a5f' : rate >= 20 ? c.gold : '#c05050', padding: '12px 12px 12px 0', fontWeight: 500 }}>{rate}%</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, padding: '12px 0', maxWidth: 200 }}>{row.note}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/schedule/page.js">
+'use client'
+
+import { useState } from 'react'
+
+const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF' }
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 1100 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 36 },
+  card: { background: '#fff', border: `1px solid ${c.border}`, borderRadius: 16, padding: '24px 28px' },
+  input: { fontFamily: 'var(--font-body)', fontSize: 14, padding: '10px 14px', border: `1px solid ${c.border}`, borderRadius: 8, background: c.cream, color: c.black, outline: 'none', width: '100%' },
+  label: { fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, marginBottom: 6, display: 'block' },
+  btn: { fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, background: c.gold, color: c.black, border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer' },
+}
+
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+const scheduled = {
+  1: [{ title: 'BTS photo set', time: '7:00 PM', status: 'scheduled' }],
+  3: [{ title: 'Exclusive video drop', time: '6:00 PM', status: 'scheduled' }, { title: 'Story update', time: '9:00 PM', status: 'scheduled' }],
+  5: [{ title: 'Behind the scenes reel', time: '5:30 PM', status: 'scheduled' }],
+  6: [{ title: 'Weekend special PPV', time: '8:00 PM', status: 'scheduled' }],
+  10: [{ title: 'Morning photo set', time: '10:00 AM', status: 'draft' }],
+  13: [{ title: 'Fan request content', time: '7:00 PM', status: 'scheduled' }],
+}
+
+const queue = [
+  { title: 'BTS photo set', date: 'Mon 1 Apr', time: '7:00 PM', type: 'Photo', note: 'High engagement expected' },
+  { title: 'Exclusive video drop', date: 'Wed 3 Apr', time: '6:00 PM', type: 'Video', note: '' },
+  { title: 'Story update', date: 'Wed 3 Apr', time: '9:00 PM', type: 'Story', note: 'Link to PPV' },
+  { title: 'Behind the scenes reel', date: 'Fri 5 Apr', time: '5:30 PM', type: 'Video', note: '' },
+  { title: 'Weekend special PPV', date: 'Sat 6 Apr', time: '8:00 PM', type: 'PPV', note: '£15 price point' },
+]
+
+const typeColor = { Photo: '#eaf0f8', Video: '#eaf5ee', Story: '#fdf3e6', PPV: '#fde8e6' }
+const typeText = { Photo: '#4a6fa8', Video: '#4a8a5f', Story: '#a07828', PPV: '#a04a4a' }
+
+export default function SchedulePage() {
+  const [showForm, setShowForm] = useState(false)
+  const [view, setView] = useState('calendar')
+  const [form, setForm] = useState({ title: '', date: '', time: '', type: 'Photo', note: '' })
+  const [selectedDay, setSelectedDay] = useState(null)
+
+  const today = 29
+  const daysInMonth = 30
+  const startOffset = 0
+
+  return (
+    <div style={s.page}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div>
+          <p style={s.pageTitle}>Content Schedule</p>
+          <p style={s.pageSubtitle}>Plan weeks ahead. Never scramble again.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['calendar', 'queue'].map(v => (
+            <button key={v} onClick={() => setView(v)} style={{
+              fontFamily: 'var(--font-body)', fontSize: 12, padding: '7px 14px', borderRadius: 8,
+              border: `1px solid ${view === v ? c.gold : c.border}`,
+              background: view === v ? c.gold : 'transparent',
+              color: view === v ? c.black : c.muted, cursor: 'pointer', textTransform: 'capitalize',
+            }}>{v}</button>
+          ))}
+          <button style={s.btn} onClick={() => setShowForm(v => !v)}>
+            {showForm ? 'Cancel' : '+ New post'}
+          </button>
+        </div>
+      </div>
+
+      {/* New post form */}
+      {showForm && (
+        <div style={{ ...s.card, marginBottom: 24, background: c.surface }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 400, color: c.black, marginBottom: 16 }}>Schedule a post</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={s.label}>Title</label>
+              <input style={s.input} placeholder="What's this post?" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Date</label>
+              <input type="date" style={s.input} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Time</label>
+              <input type="time" style={s.input} value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} />
+            </div>
+            <div>
+              <label style={s.label}>Type</label>
+              <select style={s.input} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option>Photo</option><option>Video</option><option>Story</option><option>PPV</option>
+              </select>
+            </div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={s.label}>Notes</label>
+              <input style={s.input} placeholder="Optional notes..." value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+            </div>
+          </div>
+          <button style={{ ...s.btn, marginTop: 16 }}>Schedule post</button>
+        </div>
+      )}
+
+      {/* Calendar view */}
+      {view === 'calendar' && (
+        <div style={s.card}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black }}>April 2026</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={{ background: 'none', border: `1px solid ${c.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: c.muted }}>‹</button>
+              <button style={{ background: 'none', border: `1px solid ${c.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', color: c.muted }}>›</button>
+            </div>
+          </div>
+
+          {/* Day headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: 1 }}>
+            {days.map(d => (
+              <div key={d} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, textAlign: 'center', padding: '0 0 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{d}</div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+            {Array.from({ length: startOffset }).map((_, i) => (
+              <div key={`empty-${i}`} style={{ minHeight: 90, background: '#fafaf8', borderRadius: 6 }} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1
+              const posts = scheduled[day] || []
+              const isToday = day === today
+              return (
+                <div
+                  key={day}
+                  onClick={() => setSelectedDay(day === selectedDay ? null : day)}
+                  style={{
+                    minHeight: 90, padding: '8px 6px',
+                    background: selectedDay === day ? '#fff8ef' : isToday ? '#fdf8f2' : '#fafafa',
+                    border: `1px solid ${selectedDay === day ? c.gold : isToday ? '#e8d5b0' : c.border}`,
+                    borderRadius: 8, cursor: 'pointer', transition: 'border-color 0.15s',
+                  }}
+                >
+                  <p style={{
+                    fontFamily: 'var(--font-body)', fontSize: 12,
+                    color: isToday ? c.gold : c.muted, fontWeight: isToday ? 500 : 400,
+                    marginBottom: 4,
+                  }}>{day}</p>
+                  {posts.map((p, j) => (
+                    <div key={j} style={{
+                      fontSize: 10, fontFamily: 'var(--font-body)',
+                      background: p.status === 'draft' ? '#f5f0e8' : '#0e0e0e',
+                      color: p.status === 'draft' ? c.muted : '#F5F0E8',
+                      borderRadius: 4, padding: '2px 5px', marginBottom: 2,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>{p.time} · {p.title}</div>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Queue view */}
+      {view === 'queue' && (
+        <div style={s.card}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 400, color: c.black, marginBottom: 20 }}>Upload queue</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {queue.map((post, i) => (
+              <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '16px 0', borderBottom: i < queue.length - 1 ? `1px solid ${c.border}` : 'none' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 8, background: typeColor[post.type], display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: typeText[post.type], fontWeight: 500 }}>{post.type}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: c.black, margin: '0 0 2px' }}>{post.title}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, margin: 0 }}>{post.date} at {post.time}{post.note ? ` · ${post.note}` : ''}</p>
+                </div>
+                <button style={{ background: 'none', border: `1px solid ${c.border}`, borderRadius: 6, padding: '5px 10px', fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, cursor: 'pointer' }}>
+                  Edit
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="app/dashboard/settings/page.js">
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+
+const c = {
+  cream: '#F5F0E8', gold: '#C9A96E',
+  black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE',
+  surface: '#EDE8DF', white: '#fff', red: '#c05050',
+}
+
+const s = {
+  page: { padding: 'clamp(28px, 4vw, 48px)', maxWidth: 680 },
+  pageTitle: { fontFamily: 'var(--font-display), Georgia, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, color: c.black, marginBottom: 4 },
+  pageSubtitle: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.muted, marginBottom: 48 },
+  section: { marginBottom: 36 },
+  sectionTitle: {
+    fontFamily: 'var(--font-body), sans-serif',
+    fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+    color: c.muted, marginBottom: 16, fontWeight: 500,
+    paddingBottom: 12, borderBottom: `1px solid ${c.border}`,
+  },
+  card: { background: c.white, border: `1px solid ${c.border}`, borderRadius: 16, overflow: 'hidden' },
+  row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${c.border}`, gap: 16, flexWrap: 'wrap' },
+  rowLast: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', gap: 16, flexWrap: 'wrap' },
+  rowLeft: { flex: 1, minWidth: 0 },
+  rowLabel: { fontFamily: 'var(--font-body), sans-serif', fontSize: 14, color: c.black, fontWeight: 500, marginBottom: 2 },
+  rowSub: { fontFamily: 'var(--font-body), sans-serif', fontSize: 12, color: c.muted },
+  input: {
+    fontFamily: 'var(--font-body), sans-serif',
+    fontSize: 14, padding: '10px 14px',
+    border: `1px solid ${c.border}`, borderRadius: 8,
+    background: c.cream, color: c.black,
+    outline: 'none', width: 210,
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  },
+  btnGold: {
+    fontFamily: 'var(--font-body), sans-serif', fontSize: 12, fontWeight: 500,
+    background: c.gold, color: c.black, border: 'none', borderRadius: 8,
+    padding: '10px 18px', cursor: 'pointer', whiteSpace: 'nowrap',
+    transition: 'opacity 0.15s',
+  },
+  btnDark: {
+    fontFamily: 'var(--font-body), sans-serif', fontSize: 12, fontWeight: 500,
+    background: c.black, color: c.cream, border: 'none', borderRadius: 8,
+    padding: '10px 18px', cursor: 'pointer', whiteSpace: 'nowrap',
+  },
+  btnRed: {
+    fontFamily: 'var(--font-body), sans-serif', fontSize: 12, fontWeight: 500,
+    background: 'rgba(192,80,80,0.08)', color: c.red,
+    border: `1px solid rgba(192,80,80,0.2)`, borderRadius: 8,
+    padding: '10px 18px', cursor: 'pointer', whiteSpace: 'nowrap',
+  },
+}
+
+function Toast({ message, type }) {
+  if (!message) return null
+  return (
+    <>
+      <style>{`@keyframes toastIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+      <div style={{
+        position: 'fixed', bottom: 28, right: 28, zIndex: 999,
+        fontFamily: 'var(--font-body), sans-serif', fontSize: 13,
+        padding: '12px 20px', borderRadius: 10,
+        background: type === 'error' ? c.red : c.black,
+        color: c.cream, boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        animation: 'toastIn 0.3s ease',
+      }}>
+        {message}
+      </div>
+    </>
+  )
+}
+
+const inputFocus = (e) => { e.target.style.borderColor = '#C9A96E'; e.target.style.boxShadow = '0 0 0 3px rgba(201,169,110,0.12)' }
+const inputBlur  = (e) => { e.target.style.borderColor = '#DDD8CE'; e.target.style.boxShadow = 'none' }
+
+export default function SettingsPage() {
+  const router = useRouter()
+  const [user, setUser]               = useState(null)
+  const [displayName, setDisplayName] = useState('')
+  const [newEmail, setNewEmail]       = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [toast, setToast]             = useState({ message: '', type: 'success' })
+  const [loading, setLoading]         = useState({})
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleteInput, setDeleteInput] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { router.push('/login'); return }
+      setUser(user)
+      setNewEmail(user.email ?? '')
+      setDisplayName(user.user_metadata?.display_name ?? '')
+    })
+  }, [router])
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast({ message: '', type: 'success' }), 3500)
+  }
+
+  const setLoad = (key, val) => setLoading(l => ({ ...l, [key]: val }))
+
+  // ── Display name ──────────────────────────────────────────
+  const saveDisplayName = async () => {
+    if (!displayName.trim()) return showToast('Name cannot be empty', 'error')
+    setLoad('name', true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({
+      data: { display_name: displayName.trim() }
+    })
+    setLoad('name', false)
+    error ? showToast(error.message, 'error') : showToast('Display name updated ✓')
+  }
+
+  // ── Email ─────────────────────────────────────────────────
+  const saveEmail = async () => {
+    if (!newEmail || newEmail === user?.email)
+      return showToast('Enter a different email address', 'error')
+    setLoad('email', true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    setLoad('email', false)
+    error ? showToast(error.message, 'error') : showToast('Confirmation sent — check both inboxes ✓')
+  }
+
+  // ── Password ──────────────────────────────────────────────
+  const savePassword = async () => {
+    if (!newPassword || newPassword.length < 8)
+      return showToast('Password must be at least 8 characters', 'error')
+    setLoad('password', true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setLoad('password', false)
+    if (error) {
+      showToast(error.message, 'error')
+    } else {
+      showToast('Password updated ✓')
+      setNewPassword('')
+    }
+  }
+
+  // ── Sign out ──────────────────────────────────────────────
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  // ── Delete account ────────────────────────────────────────
+  // Requires a Supabase Edge Function — see supabase/functions/delete-account/index.ts below
+  const handleDelete = async () => {
+    if (deleteInput !== user?.email)
+      return showToast('Email does not match', 'error')
+    setLoad('delete', true)
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      }
+    )
+    setLoad('delete', false)
+    if (res.ok) {
+      await supabase.auth.signOut()
+      router.push('/')
+    } else {
+      const body = await res.json().catch(() => ({}))
+      showToast(body.error ?? 'Failed to delete account', 'error')
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <div style={s.page}>
+      <p style={s.pageTitle}>Settings</p>
+      <p style={s.pageSubtitle}>Manage your account.</p>
+
+      {/* ── Profile ── */}
+      <div style={s.section}>
+        <p style={s.sectionTitle}>Profile</p>
+        <div style={s.card}>
+          <div style={s.rowLast}>
+            <div style={s.rowLeft}>
+              <p style={s.rowLabel}>Display name</p>
+              <p style={s.rowSub}>Shown to brands and clients</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                style={s.input}
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="Your name"
+                onFocus={inputFocus}
+                onBlur={inputBlur}
+                onKeyDown={e => e.key === 'Enter' && saveDisplayName()}
+              />
+              <button
+                style={{ ...s.btnGold, opacity: loading.name ? 0.6 : 1 }}
+                onClick={saveDisplayName}
+                disabled={loading.name}
+              >
+                {loading.name ? '…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Account ── */}
+      <div style={s.section}>
+        <p style={s.sectionTitle}>Account</p>
+        <div style={s.card}>
+
+          {/* Email */}
+          <div style={s.row}>
+            <div style={s.rowLeft}>
+              <p style={s.rowLabel}>Email address</p>
+              <p style={s.rowSub}>
+                Current: <strong style={{ color: c.black }}>{user.email}</strong>
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                style={s.input}
+                type="email"
+                value={newEmail}
+                onChange={e => setNewEmail(e.target.value)}
+                placeholder="new@email.com"
+                onFocus={inputFocus}
+                onBlur={inputBlur}
+                onKeyDown={e => e.key === 'Enter' && saveEmail()}
+              />
+              <button
+                style={{ ...s.btnGold, opacity: loading.email ? 0.6 : 1 }}
+                onClick={saveEmail}
+                disabled={loading.email}
+              >
+                {loading.email ? '…' : 'Update'}
+              </button>
+            </div>
+          </div>
+
+          {/* Password */}
+          <div style={s.rowLast}>
+            <div style={s.rowLeft}>
+              <p style={s.rowLabel}>Password</p>
+              <p style={s.rowSub}>Minimum 8 characters</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                style={{ ...s.input, width: 180 }}
+                type="password"
+                placeholder="New password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                onFocus={inputFocus}
+                onBlur={inputBlur}
+                onKeyDown={e => e.key === 'Enter' && savePassword()}
+              />
+              <button
+                style={{ ...s.btnGold, opacity: loading.password ? 0.6 : 1 }}
+                onClick={savePassword}
+                disabled={loading.password}
+              >
+                {loading.password ? '…' : 'Update'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Session ── */}
+      <div style={s.section}>
+        <p style={s.sectionTitle}>Session</p>
+        <div style={s.card}>
+          <div style={s.rowLast}>
+            <div style={s.rowLeft}>
+              <p style={s.rowLabel}>Sign out</p>
+              <p style={s.rowSub}>Sign out of your account on this device</p>
+            </div>
+            <button style={s.btnDark} onClick={handleSignOut}>Sign out</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Danger zone ── */}
+      <div style={s.section}>
+        <p style={{ ...s.sectionTitle, color: 'rgba(192,80,80,0.6)', borderBottomColor: 'rgba(192,80,80,0.15)' }}>
+          Danger zone
+        </p>
+        <div style={s.card}>
+          {!deleteConfirm ? (
+            <div style={s.rowLast}>
+              <div style={s.rowLeft}>
+                <p style={{ ...s.rowLabel, color: c.red }}>Delete account</p>
+                <p style={s.rowSub}>Permanently deletes your account and all data. Cannot be undone.</p>
+              </div>
+              <button style={s.btnRed} onClick={() => setDeleteConfirm(true)}>
+                Delete account
+              </button>
+            </div>
+          ) : (
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <p style={{ ...s.rowLabel, color: c.red, marginBottom: 4 }}>Are you sure?</p>
+                <p style={s.rowSub}>
+                  Type <strong style={{ color: c.black }}>{user.email}</strong> to confirm. This cannot be undone.
+                </p>
+              </div>
+              <input
+                style={{
+                  ...s.input, width: '100%',
+                  background: 'rgba(192,80,80,0.04)',
+                  borderColor: 'rgba(192,80,80,0.2)',
+                }}
+                type="email"
+                placeholder={user.email}
+                value={deleteInput}
+                onChange={e => setDeleteInput(e.target.value)}
+                onFocus={e => { e.target.style.borderColor = c.red; e.target.style.boxShadow = '0 0 0 3px rgba(192,80,80,0.1)' }}
+                onBlur={inputBlur}
+              />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  style={{ ...s.btnRed, opacity: (loading.delete || deleteInput !== user.email) ? 0.5 : 1 }}
+                  onClick={handleDelete}
+                  disabled={loading.delete || deleteInput !== user.email}
+                >
+                  {loading.delete ? 'Deleting…' : 'Yes, delete my account'}
+                </button>
+                <button
+                  style={s.btnDark}
+                  onClick={() => { setDeleteConfirm(false); setDeleteInput('') }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Toast message={toast.message} type={toast.type} />
+    </div>
+  )
+}
+</file>
+
+<file path="app/login/page.js">
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+
+export default function LoginPage() {
+  const [mode, setMode] = useState('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [status, setStatus] = useState('idle')
+  const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => setMounted(true), [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setStatus('loading')
+    setError('')
+    const supabase = createClient()
+
+    if (mode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) { setError(error.message); setStatus('error') }
+      else router.push('/dashboard')
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) { setError(error.message); setStatus('error') }
+      else setStatus('success')
+    }
+  }
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .auth-root {
+          min-height: 100vh;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          font-family: 'DM Sans', sans-serif;
+          background: #0a0a0a;
+        }
+
+        @media (max-width: 768px) {
+          .auth-root { grid-template-columns: 1fr; }
+          .auth-left { display: none !important; }
+          .auth-right { padding: 48px 28px !important; }
+        }
+
+        /* ── Left panel ── */
+        .auth-left {
+          position: relative;
+          background: #0e0e0e;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 52px 56px;
+          overflow: hidden;
+          border-right: 1px solid #1a1a1a;
+        }
+
+        .auth-left-bg {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 60% 50% at 20% 80%, rgba(201,169,110,0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 60% at 80% 20%, rgba(201,169,110,0.06) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        .auth-left-grain {
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+          pointer-events: none;
+          opacity: 0.6;
+        }
+
+        .auth-brand {
+          position: relative;
+          z-index: 1;
+        }
+
+        .auth-brand-logo {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 28px;
+          font-weight: 400;
+          letter-spacing: 0.3em;
+          color: #F5F0E8;
+        }
+
+        .auth-brand-tagline {
+          font-size: 12px;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: #C9A96E;
+          margin-top: 8px;
+          font-weight: 300;
+        }
+
+        .auth-left-content {
+          position: relative;
+          z-index: 1;
+        }
+
+        .auth-left-quote {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(28px, 3.5vw, 44px);
+          font-weight: 300;
+          font-style: italic;
+          color: #F5F0E8;
+          line-height: 1.25;
+          letter-spacing: -0.01em;
+          margin-bottom: 28px;
+        }
+
+        .auth-left-quote em {
+          color: #C9A96E;
+          font-style: normal;
+        }
+
+        .auth-left-stats {
+          display: flex;
+          gap: 40px;
+        }
+
+        .auth-stat-value {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 32px;
+          font-weight: 400;
+          color: #C9A96E;
+          line-height: 1;
+        }
+
+        .auth-stat-label {
+          font-size: 11px;
+          color: #555;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          margin-top: 4px;
+        }
+
+        .auth-left-bottom {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .auth-avatar-stack {
+          display: flex;
+        }
+
+        .auth-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 2px solid #0e0e0e;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 13px;
+          font-weight: 500;
+          margin-left: -8px;
+          color: #0e0e0e;
+        }
+
+        .auth-avatar:first-child { margin-left: 0; }
+
+        .auth-social-proof {
+          font-size: 12px;
+          color: #555;
+          line-height: 1.5;
+        }
+
+        .auth-social-proof strong {
+          color: #8a7e6e;
+          font-weight: 500;
+        }
+
+        /* ── Right panel ── */
+        .auth-right {
+          background: #F5F0E8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 64px 72px;
+        }
+
+        .auth-form-wrap {
+          width: 100%;
+          max-width: 360px;
+          opacity: 0;
+          transform: translateY(16px);
+          animation: authFadeUp 0.5s ease 0.1s forwards;
+        }
+
+        @keyframes authFadeUp {
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-form-header {
+          margin-bottom: 40px;
+        }
+
+        .auth-form-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 36px;
+          font-weight: 400;
+          color: #0e0e0e;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+          margin-bottom: 8px;
+        }
+
+        .auth-form-sub {
+          font-size: 14px;
+          color: #8a7e6e;
+          font-weight: 300;
+        }
+
+        .auth-field {
+          margin-bottom: 14px;
+        }
+
+        .auth-label {
+          display: block;
+          font-size: 11px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #8a7e6e;
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
+
+        .auth-input {
+          width: 100%;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          padding: 14px 18px;
+          border: 1px solid #DDD8CE;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.7);
+          color: #0e0e0e;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          -webkit-appearance: none;
+        }
+
+        .auth-input:focus {
+          border-color: #C9A96E;
+          box-shadow: 0 0 0 3px rgba(201,169,110,0.12);
+        }
+
+        .auth-input::placeholder { color: #b5aa99; }
+
+        .auth-error {
+          font-size: 13px;
+          color: #c05050;
+          background: rgba(192,80,80,0.08);
+          border: 1px solid rgba(192,80,80,0.15);
+          border-radius: 8px;
+          padding: 10px 14px;
+          margin-bottom: 14px;
+        }
+
+        .auth-btn {
+          width: 100%;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          background: #0e0e0e;
+          color: #F5F0E8;
+          border: none;
+          border-radius: 10px;
+          padding: 16px;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.1s;
+          margin-top: 8px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .auth-btn:hover { background: #1a1a1a; }
+        .auth-btn:active { transform: scale(0.99); }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .auth-btn-gold {
+          background: #C9A96E;
+          color: #0e0e0e;
+          margin-top: 6px;
+        }
+
+        .auth-btn-gold:hover { background: #b8944f; }
+
+        .auth-divider {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 24px 0;
+        }
+
+        .auth-divider-line {
+          flex: 1;
+          height: 1px;
+          background: #DDD8CE;
+        }
+
+        .auth-divider-text {
+          font-size: 11px;
+          color: #b5aa99;
+          letter-spacing: 0.08em;
+        }
+
+        .auth-switch {
+          text-align: center;
+          margin-top: 28px;
+          font-size: 13px;
+          color: #8a7e6e;
+        }
+
+        .auth-switch-btn {
+          background: none;
+          border: none;
+          color: #C9A96E;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          padding: 0;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .auth-success {
+          text-align: center;
+          padding: 48px 0;
+        }
+
+        .auth-success-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: rgba(201,169,110,0.15);
+          border: 1px solid rgba(201,169,110,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 24px;
+          font-size: 22px;
+        }
+
+        .auth-success-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 28px;
+          font-weight: 400;
+          color: #0e0e0e;
+          margin-bottom: 10px;
+        }
+
+        .auth-success-body {
+          font-size: 14px;
+          color: #8a7e6e;
+          line-height: 1.6;
+        }
+
+        .auth-terms {
+          margin-top: 24px;
+          font-size: 11px;
+          color: #b5aa99;
+          text-align: center;
+          line-height: 1.6;
+        }
+      `}</style>
+
+      <div className="auth-root">
+
+        {/* ── Left panel ── */}
+        <div className="auth-left">
+          <div className="auth-left-bg" />
+          <div className="auth-left-grain" />
+
+          <div className="auth-brand">
+            <div className="auth-brand-logo">MODL</div>
+            <div className="auth-brand-tagline">Be your own agency</div>
+          </div>
+
+          <div className="auth-left-content">
+            <p className="auth-left-quote">
+              Everything your agency does.<br />
+              For <em>£30 a month.</em><br />
+              Keep 100% of your earnings.
+            </p>
+            <div className="auth-left-stats">
+              <div>
+                <div className="auth-stat-value">100%</div>
+                <div className="auth-stat-label">You keep</div>
+              </div>
+              <div>
+                <div className="auth-stat-value">£30</div>
+                <div className="auth-stat-label">Per month</div>
+              </div>
+              <div>
+                <div className="auth-stat-value">0%</div>
+                <div className="auth-stat-label">Commission</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="auth-left-bottom">
+            <div className="auth-avatar-stack">
+              {[
+                { bg: '#C9A96E', letter: 'A' },
+                { bg: '#a8843e', letter: 'S' },
+                { bg: '#8a7e6e', letter: 'M' },
+              ].map((a, i) => (
+                <div key={i} className="auth-avatar" style={{ background: a.bg }}>{a.letter}</div>
+              ))}
+            </div>
+            <div className="auth-social-proof">
+              <strong>Creators on the waitlist</strong><br />
+              Join them. Launch before your agency notices.
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right panel ── */}
+        <div className="auth-right">
+          <div className="auth-form-wrap">
+
+            {status === 'success' ? (
+              <div className="auth-success">
+                <div className="auth-success-icon">✉️</div>
+                <p className="auth-success-title">Check your inbox</p>
+                <p className="auth-success-body">
+                  We sent a confirmation link to<br />
+                  <strong style={{ color: '#0e0e0e' }}>{email}</strong>
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="auth-form-header">
+                  <h1 className="auth-form-title">
+                    {mode === 'login' ? 'Welcome back.' : 'Get started.'}
+                  </h1>
+                  <p className="auth-form-sub">
+                    {mode === 'login'
+                      ? 'Sign in to your MODL dashboard.'
+                      : 'Create your account. No agency needed.'}
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                  <div className="auth-field">
+                    <label className="auth-label">Email</label>
+                    <input
+                      className="auth-input"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  <div className="auth-field">
+                    <label className="auth-label">Password</label>
+                    <input
+                      className="auth-input"
+                      type="password"
+                      placeholder={mode === 'login' ? '••••••••' : 'Min. 8 characters'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    />
+                  </div>
+
+                  {error && <div className="auth-error">{error}</div>}
+
+                  <button
+                    type="submit"
+                    className={`auth-btn ${mode === 'signup' ? 'auth-btn-gold' : ''}`}
+                    disabled={status === 'loading'}
+                  >
+                    {status === 'loading'
+                      ? 'Please wait…'
+                      : mode === 'login' ? 'Sign in' : 'Create account'}
+                  </button>
+                </form>
+
+                {mode === 'login' && (
+                  <p className="auth-terms">
+                    <button
+                      type="button"
+                      style={{ background: 'none', border: 'none', color: '#b5aa99', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                      onClick={() => {}}
+                    >
+                      Forgot password?
+                    </button>
+                  </p>
+                )}
+
+                <div className="auth-switch">
+                  {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                  <button
+                    type="button"
+                    className="auth-switch-btn"
+                    onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setStatus('idle') }}
+                  >
+                    {mode === 'login' ? 'Sign up free' : 'Sign in'}
+                  </button>
+                </div>
+
+                {mode === 'signup' && (
+                  <p className="auth-terms">
+                    By creating an account you agree to our Terms of Service and Privacy Policy.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+</file>
+
+<file path="lib/supabase-server.js">
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createServerSupabaseClient() {
+  const cookieStore = await cookies()
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+}
+</file>
+
+<file path="lib/supabase.js">
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+}
+</file>
+
+<file path="middleware.js">
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+
+export async function middleware(request) {
+  let response = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value, options))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options))
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  if (user && request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/login'],
+}
+</file>
 
 <file path=".gitignore">
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -124,7 +2446,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+
 export async function POST(req) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  return new Response('Server misconfigured', { status: 500 })
+}
+
   try {
     const { email } = await req.json()
 
@@ -241,10 +2568,10 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: 'MODL — Be Your Own Agency',
-  description: 'Everything your agency does. For $30 a month. Keep 100% of your earnings.',
+  description: 'Everything your management agency does. For £25 a month. Keep 100% of your earnings.',
   openGraph: {
     title: 'MODL — Be Your Own Agency',
-    description: 'Professional comp card, verified casting calls, contracts and payments. You never need an agency again.',
+    description: 'Earnings tracking, content scheduling, fan CRM, and analytics — all in one dashboard. You never need a management agency again.',
   },
 }
 
@@ -259,23 +2586,22 @@ export default function RootLayout({ children }) {
 
 <file path="app/page.js">
 'use client'
-
+ 
 import { useState } from 'react'
-
 import { Playfair_Display, Inter } from 'next/font/google'
-
+ 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-display',
 })
-
+ 
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
 })
-
+ 
 const s = {
   // Nav
   nav: {
@@ -300,7 +2626,7 @@ const s = {
     padding: '10px 24px', cursor: 'pointer',
     transition: 'background 0.2s',
   },
-
+ 
   // Hero
   hero: {
     minHeight: '100vh',
@@ -330,7 +2656,7 @@ const s = {
     color: '#8a7e6e', lineHeight: 1.6,
     maxWidth: 520, marginBottom: 48,
   },
-
+ 
   // Waitlist form
   form: {
     display: 'flex', gap: 8, width: '100%', maxWidth: 440,
@@ -357,7 +2683,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 12, color: '#b5aa99', marginTop: 16,
   },
-
+ 
   // Section shared
   section: {
     padding: 'clamp(60px, 10vw, 120px) clamp(24px, 6vw, 96px)',
@@ -380,7 +2706,7 @@ const s = {
     fontSize: 17, color: '#8a7e6e', lineHeight: 1.6,
     maxWidth: 520, marginBottom: 56,
   },
-
+ 
   // Problem cards
   problemGrid: {
     display: 'grid',
@@ -403,7 +2729,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 15, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Features
   featureGrid: {
     display: 'grid',
@@ -431,7 +2757,7 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 14, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Steps
   stepsGrid: {
     display: 'grid',
@@ -458,14 +2784,14 @@ const s = {
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 14, color: '#8a7e6e', lineHeight: 1.65,
   },
-
+ 
   // Pricing
   pricingWrap: {
     background: '#0e0e0e',
     borderRadius: 24,
     padding: 'clamp(40px, 6vw, 72px)',
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: 48,
     alignItems: 'center',
   },
@@ -488,208 +2814,209 @@ const s = {
   },
   priceSub: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 13, color: '#555', marginBottom: 32,
-  },
-  featureList: {
-    listStyle: 'none',
-    display: 'flex', flexDirection: 'column', gap: 12,
-  },
-  featureItem: {
-    fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 14, color: '#b5aa99',
-    display: 'flex', alignItems: 'center', gap: 10,
-  },
-  checkmark: {
-    color: '#C9A96E', fontSize: 14, flexShrink: 0,
+    fontSize: 13, color: '#8a7e6e', marginBottom: 32,
   },
   pricingBtn: {
-    marginTop: 32,
     fontFamily: 'var(--font-body), sans-serif',
     fontSize: 13, fontWeight: 500, letterSpacing: '0.06em',
     background: '#C9A96E', color: '#0e0e0e',
     border: 'none', borderRadius: 100,
     padding: '14px 32px', cursor: 'pointer',
     transition: 'background 0.2s',
-    display: 'inline-block',
   },
-
-  // Dark CTA section
-  ctaSection: {
-    background: '#0e0e0e',
-    padding: 'clamp(80px, 12vw, 140px) clamp(24px, 6vw, 96px)',
-    textAlign: 'center',
-    display: 'flex', flexDirection: 'column',
-    alignItems: 'center',
+  pricingFeatureList: {
+    display: 'flex', flexDirection: 'column', gap: 16,
   },
-  ctaH2: {
-    fontFamily: 'var(--font-display), Georgia, serif',
-    fontSize: 'clamp(36px, 6vw, 80px)',
-    fontWeight: 300, color: '#F5F0E8',
-    lineHeight: 1.05, letterSpacing: '-0.02em',
-    maxWidth: 800, marginBottom: 24,
+  pricingFeatureItem: {
+    display: 'flex', alignItems: 'flex-start', gap: 12,
   },
-  ctaSub: {
+  pricingCheck: {
+    color: '#C9A96E', fontSize: 14, flexShrink: 0, marginTop: 2,
+  },
+  pricingFeatureText: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 17, color: '#8a7e6e', lineHeight: 1.6,
-    maxWidth: 480, marginBottom: 48,
+    fontSize: 15, color: '#8a7e6e', lineHeight: 1.5,
   },
-
+ 
   // Footer
   footer: {
-    background: '#0e0e0e',
-    borderTop: '1px solid #1e1e1e',
-    padding: '32px 48px',
+    borderTop: '1px solid #DDD8CE',
+    padding: '40px clamp(24px, 6vw, 96px)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     flexWrap: 'wrap', gap: 16,
+    maxWidth: 1200, margin: '0 auto',
   },
   footerLogo: {
     fontFamily: 'var(--font-display), Georgia, serif',
-    fontSize: 18, fontWeight: 500, letterSpacing: '0.2em', color: '#F5F0E8',
+    fontSize: 18, fontWeight: 500, letterSpacing: '0.2em', color: '#0e0e0e',
   },
   footerLinks: {
-    display: 'flex', gap: 24, flexWrap: 'wrap',
+    display: 'flex', gap: 32, flexWrap: 'wrap',
   },
   footerLink: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 12, color: '#555', textDecoration: 'none',
-    transition: 'color 0.2s',
-    letterSpacing: '0.04em',
+    fontSize: 13, color: '#8a7e6e', textDecoration: 'none',
   },
-  footerRight: {
+  footerCopy: {
     fontFamily: 'var(--font-body), sans-serif',
-    fontSize: 12, color: '#333',
+    fontSize: 12, color: '#b5aa99',
   },
 }
-
+ 
+// ─── Data ────────────────────────────────────────────────────────────────────
+ 
+const problems = [
+  {
+    icon: '✕',
+    title: 'They take 30–50% forever',
+    body: 'Management agencies pocket up to half of everything you earn — every month, indefinitely. That\'s thousands leaving your account before you\'ve even seen it.',
+  },
+  {
+    icon: '✕',
+    title: 'They hold your account hostage',
+    body: 'Agencies demand your login credentials then use account access as leverage. When you want to leave, they make it as painful as possible.',
+  },
+  {
+    icon: '✕',
+    title: 'You\'re kept in the dark',
+    body: 'No real analytics, no subscriber data, no visibility into your own business. Agencies hide the numbers because informed creators are harder to exploit.',
+  },
+]
+ 
 const features = [
   {
     num: '01',
-    title: 'Your Comp Card',
-    body: 'A beautiful shareable link with your portfolio, measurements, and rates. Send it directly to brands and photographers like a pro.',
+    title: 'Earnings Tracker',
+    body: 'Every pound in one place. Subscription income, PPV, and tips broken out separately. Projected earnings, expense tracking, and your real profit — all visible.',
   },
   {
     num: '02',
-    title: 'Verified Castings',
-    body: 'Browse jobs from verified brands only. Every client is checked before they can post. No scammers, no fake castings, ever.',
+    title: 'Content Scheduler',
+    body: 'Plan weeks of content in advance. Calendar view, upload queue, and notes on every post. No more scrambling daily or paying someone else to manage it for you.',
   },
   {
     num: '03',
-    title: 'Auto Contracts',
-    body: 'Fill in the job details and we generate a professional contract automatically. Never get stiffed on a payment again.',
+    title: 'Fan CRM',
+    body: 'Message templates for common interactions, notes on who\'s who, and high-spender flagging for priority attention. Manage your top fans without burning out.',
   },
   {
     num: '04',
-    title: 'Escrow Payments',
-    body: 'Clients pay through MODL before the shoot. Money releases to your account when you confirm the job is done.',
+    title: 'Promotion Tracker',
+    body: 'Log every shoutout, collab, and Reddit promo. Track what you spent, what growth it drove, and what converted. Stop wasting money on promotions that don\'t work.',
+  },
+  {
+    num: '05',
+    title: 'Analytics Dashboard',
+    body: 'Subscriber growth, best-performing content, optimal posting times, churn rate, and average fan value. The data agencies hide from you — fully visible and yours.',
   },
 ]
-
+ 
 const pricingFeatures = [
-  'Shareable comp card and portfolio',
-  'Unlimited casting call applications',
-  'Auto-generated contracts and invoices',
-  'Escrow payments on every booking',
-  'Direct messaging with verified clients',
-  'Privacy mode for content creators',
-  'Booking and earnings dashboard',
+  'Earnings tracker — subscriptions, PPV, and tips',
+  'Content scheduler with calendar view',
+  'Fan CRM with message templates and notes',
+  'Promotion tracker with ROI logging',
+  'Full analytics dashboard',
+  'No commission on earnings. Ever.',
+  'Your data stays yours — always',
   'Cancel anytime',
 ]
-
-export default function Home() {
+ 
+// ─── Waitlist Form Component ──────────────────────────────────────────────────
+ 
+function WaitlistForm({ dark = false }) {
   const [email, setEmail] = useState('')
-  const [ctaEmail, setCtaEmail] = useState('')
-  const [status, setStatus] = useState('idle') // idle | loading | success | error
-  const [ctaStatus, setCtaStatus] = useState('idle')
-
-  const handleSubmit = async (e, which) => {
+  const [status, setStatus] = useState('idle')
+ 
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const val = which === 'hero' ? email : ctaEmail
-    const setter = which === 'hero' ? setStatus : setCtaStatus
-    if (!val) return
-
-    setter('loading')
+    if (!email) return
+    setStatus('loading')
     try {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: val }),
+        body: JSON.stringify({ email }),
       })
       if (res.ok) {
-        setter('success')
-        which === 'hero' ? setEmail('') : setCtaEmail('')
+        setStatus('success')
+        setEmail('')
       } else {
-        setter('error')
+        setStatus('error')
       }
     } catch {
-      setter('error')
+      setStatus('error')
     }
   }
-
-  const WaitlistForm = ({ which }) => {
-    const val = which === 'hero' ? email : ctaEmail
-    const st = which === 'hero' ? status : ctaStatus
-    const setVal = which === 'hero' ? setEmail : setCtaEmail
-    const dark = which === 'cta'
-
-    if (st === 'success') {
-      return (
-        <p style={{ ...s.socialProof, color: '#C9A96E', fontSize: 15 }}>
-          ✓ You're on the list. We'll be in touch soon.
-        </p>
-      )
-    }
-
+ 
+  if (status === 'success') {
     return (
-      <form onSubmit={(e) => handleSubmit(e, which)} style={s.form}>
-        <input
-          type="email"
-          placeholder="your@email.com"
-          value={val}
-          onChange={e => setVal(e.target.value)}
-          required
-          style={{
-            ...s.input,
-            background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.6)',
-            color: dark ? '#F5F0E8' : '#0e0e0e',
-            border: dark ? '1px solid #2a2a2a' : '1px solid #DDD8CE',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={st === 'loading'}
-          style={{
-            ...s.submitBtn,
-            opacity: st === 'loading' ? 0.7 : 1,
-          }}
-        >
-          {st === 'loading' ? 'Joining...' : 'Reserve My Spot'}
-        </button>
-        {st === 'error' && (
-          <p style={{ ...s.socialProof, color: '#e55', width: '100%', textAlign: 'center' }}>
-            Something went wrong. Try again.
-          </p>
-        )}
-      </form>
+      <p style={{ ...s.socialProof, color: '#C9A96E', fontSize: 15 }}>
+        ✓ You&apos;re on the list. We&apos;ll be in touch soon.
+      </p>
     )
   }
-
+ 
+  return (
+    <form onSubmit={handleSubmit} style={s.form}>
+      <input
+        type="email"
+        placeholder="your@email.com"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        required
+        style={{
+          ...s.input,
+          background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.6)',
+          color: dark ? '#F5F0E8' : '#0e0e0e',
+          border: dark ? '1px solid #2a2a2a' : '1px solid #DDD8CE',
+        }}
+      />
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        style={{ ...s.submitBtn, opacity: status === 'loading' ? 0.7 : 1 }}
+      >
+        {status === 'loading' ? 'Joining...' : 'Reserve My Spot'}
+      </button>
+      {status === 'error' && (
+        <p style={{ ...s.socialProof, color: '#e55', width: '100%', textAlign: 'center' }}>
+          Something went wrong. Try again.
+        </p>
+      )}
+    </form>
+  )
+}
+ 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+ 
+export default function Home() {
+  const scrollToWaitlist = () => {
+    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
+  }
+ 
   return (
     <div className={`${playfair.variable} ${inter.variable}`}>
+ 
       {/* NAV */}
       <nav style={s.nav}>
         <span style={s.logo}>MODL</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="#features" style={{ ...s.footerLink, color: '#8a7e6e', fontSize: 13 }}>Features</a>
           <a href="#pricing" style={{ ...s.footerLink, color: '#8a7e6e', fontSize: 13 }}>Pricing</a>
-          <a href="#waitlist">
-            <button style={s.navBtn}>Join Waitlist</button>
-          </a>
+
+<button
+  style={s.navBtn}
+  onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
+>
+  Join Waitlist
+</button>
         </div>
       </nav>
-
+ 
       {/* HERO */}
       <section style={s.hero}>
-        {/* Decorative circle */}
+        {/* Decorative circles */}
         <div style={{
           position: 'absolute', top: '15%', right: '8%',
           width: 320, height: 320, borderRadius: '50%',
@@ -702,48 +3029,36 @@ export default function Home() {
           border: '1px solid #C9A96E', opacity: 0.2,
           pointerEvents: 'none',
         }} />
+ 
 
-        <p className="fade-up fade-up-1" style={s.heroLabel}>The Agency Alternative</p>
-        <h1 className="fade-up fade-up-2" style={s.h1}>
-          You don't need<br />an agency.
-        </h1>
-        <p className="fade-up fade-up-3" style={s.heroSub}>
-          MODL gives every model a professional comp card, verified casting calls, automatic contracts and payments — for $30 a month. Keep 100% of your earnings.
-        </p>
-        <div className="fade-up fade-up-4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}>
-          <WaitlistForm which="hero" />
+
+<h1 className="fade-up fade-up-2" style={s.h1}>
+  You don&apos;t need<br />an agency.
+</h1>
+<p className="fade-up fade-up-3" style={s.heroSub}>
+  Everything your agency does. £25 a month.<br />Keep 100% of your earnings.
+</p>
+        <div
+          className="fade-up fade-up-4"
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}
+        >
+          <WaitlistForm />
           <p style={s.socialProof}>No spam · One email when we launch · Cancel anytime</p>
         </div>
       </section>
-
+ 
       {/* PROBLEM */}
       <div style={{ background: '#EDE8DF', padding: '0' }}>
         <div style={{ ...s.section, paddingBottom: 0 }}>
           <p style={s.sectionLabel}>The problem</p>
-          <h2 style={s.h2}>Why models are done<br />with agencies</h2>
+          <h2 style={s.h2}>Why creators are done<br />with management agencies</h2>
         </div>
         <div style={{ ...s.problemGrid, marginTop: 0 }}>
-          {[
-            {
-              icon: '✕',
-              title: 'They take 20% forever',
-              body: 'The average agency takes a fifth of every booking for as long as you\'re signed. That\'s thousands of dollars a year leaving your pocket.',
-            },
-            {
-              icon: '✕',
-              title: 'They control who sees you',
-              body: 'Agencies decide which clients you meet and which jobs you\'re submitted for. You have zero visibility into what\'s happening with your career.',
-            },
-            {
-              icon: '✕',
-              title: 'They charge you upfront',
-              body: 'Portfolios, comp cards, training, registration fees. Legitimate agencies don\'t charge models — but most of them do anyway.',
-            },
-          ].map((p, i) => (
+          {problems.map((p, i) => (
             <div key={i} style={{
               ...s.problemCard,
               borderRadius: 0,
-              borderRight: i < 2 ? '2px solid #F5F0E8' : 'none',
+              borderRight: i < problems.length - 1 ? '2px solid #F5F0E8' : 'none',
             }}>
               <div style={{ ...s.problemIcon, color: '#C9A96E' }}>{p.icon}</div>
               <h3 style={s.problemTitle}>{p.title}</h3>
@@ -752,12 +3067,12 @@ export default function Home() {
           ))}
         </div>
       </div>
-
+ 
       {/* FEATURES */}
       <section id="features" style={{ ...s.section, paddingTop: 'clamp(80px, 12vw, 140px)' }}>
         <p style={s.sectionLabel}>What you get</p>
-        <h2 style={s.h2}>Everything your agency does.<br />For $30 a month.</h2>
-        <p style={s.sectionSub}>One subscription replaces your agency, your comp card printer, your contract lawyer, and your accountant.</p>
+        <h2 style={s.h2}>Everything your agency does.<br />For £25 a month.</h2>
+        <p style={s.sectionSub}>Five tools that replace your management agency. You keep every penny and stay in full control of your account.</p>
         <div style={s.featureGrid}>
           {features.map((f, i) => (
             <div
@@ -779,7 +3094,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
+ 
       {/* HOW IT WORKS */}
       <section style={{ ...s.section }}>
         <p style={s.sectionLabel}>How it works</p>
@@ -788,18 +3103,18 @@ export default function Home() {
           {[
             {
               num: 'Step 01',
-              title: 'Create your profile',
-              body: 'Add your photos, measurements, and rates. We build your comp card automatically — ready to share in minutes.',
+              title: 'Sign up and connect',
+              body: 'Create your MODL account and set up your creator profile. No agency access required — your OnlyFans login stays yours, always.',
             },
             {
               num: 'Step 02',
-              title: 'Apply to castings',
-              body: 'Browse verified jobs and apply directly. No agency decides for you. Full transparency on every application.',
+              title: 'Add your data',
+              body: 'Log your earnings, schedule your content, and import your fan list. Everything in one dashboard from day one.',
             },
             {
               num: 'Step 03',
-              title: 'Get booked, get paid',
-              body: 'Client pays through the platform before the shoot. You confirm the job done. Money hits your account within 24 hours.',
+              title: 'Run your business',
+              body: 'Track what\'s working, manage your top fans, and grow without giving 30–50% to someone who isn\'t doing much anyway.',
             },
           ].map((step, i) => (
             <div key={i} style={{
@@ -813,7 +3128,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
+ 
       {/* FOR WHO */}
       <section style={{ ...s.section, paddingTop: 0 }}>
         <div style={{
@@ -823,21 +3138,21 @@ export default function Home() {
           gap: 48, alignItems: 'center',
         }}>
           <div>
-            <p style={s.sectionLabel}>Who it's for</p>
+            <p style={s.sectionLabel}>Who it&apos;s for</p>
             <h2 style={{ ...s.h2, fontSize: 'clamp(28px, 4vw, 48px)', marginBottom: 16 }}>
-              Built for models who run their own career
+              Built for creators who are done being managed
             </h2>
             <p style={{ ...s.sectionSub, marginBottom: 0 }}>
-              Whether you're just starting out or walking away from a bad agency — MODL is your professional foundation.
+              Whether you&apos;re currently signed with an agency or considering one — MODL is the tool that makes going independent easy.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              'Aspiring models building their first portfolio',
-              'Freelance models managing their own bookings',
-              'Models leaving agencies and going independent',
-              'Content creators expanding into brand work',
-              'Models who value their privacy above everything',
+              'Creators currently signed with a management agency',
+              'Creators who feel underpaid or underserved by their agency',
+              'Solo creators overwhelmed by managing everything alone',
+              'Creators who have heard the horror stories and want to avoid agencies entirely',
+              'Anyone who wants their earnings data visible and owned by them',
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <span style={{ color: '#C9A96E', fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
@@ -847,80 +3162,67 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+ 
       {/* PRICING */}
       <section id="pricing" style={s.section}>
         <div style={s.pricingWrap}>
           <div style={s.pricingLeft}>
             <p style={{ ...s.sectionLabel, color: '#8a7e6e' }}>Pricing</p>
             <h2 style={s.pricingH2}>One plan.<br />No hidden fees.</h2>
-            <p style={s.pricingBody}>Everything you need to run your modeling career like a business. No agency taking their cut month after month.</p>
-            <div style={s.price}>$30</div>
+            <p style={s.pricingBody}>
+              Everything you need to run your creator career like a business. No agency taking their cut month after month.
+            </p>
+            <div style={s.price}>£25</div>
             <p style={s.priceSub}>per month · cancel anytime</p>
-            <button style={s.pricingBtn}
+            <button
+              style={s.pricingBtn}
+              onClick={scrollToWaitlist}
               onMouseEnter={e => e.currentTarget.style.background = '#a8843e'}
               onMouseLeave={e => e.currentTarget.style.background = '#C9A96E'}
             >
-              <a href="#waitlist" style={{ color: 'inherit', textDecoration: 'none' }}>Join the Waitlist</a>
+              Join the Waitlist
             </button>
-            <p style={{ ...s.priceSub, marginTop: 16 }}>
-              + 10% commission on completed bookings only. Nothing else, ever.
-            </p>
           </div>
-          <ul style={s.featureList}>
+          <div style={s.pricingFeatureList}>
             {pricingFeatures.map((item, i) => (
-              <li key={i} style={s.featureItem}>
-                <span style={s.checkmark}>✓</span>
-                {item}
-              </li>
+              <div key={i} style={s.pricingFeatureItem}>
+                <span style={s.pricingCheck}>✓</span>
+                <span style={s.pricingFeatureText}>{item}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
-
+ 
       {/* FINAL CTA */}
-      <section id="waitlist" style={s.ctaSection}>
-        <div style={{
-          position: 'absolute', opacity: 0.05,
-          fontFamily: 'var(--font-display), Georgia, serif',
-          fontSize: 'clamp(80px, 15vw, 200px)',
-          fontWeight: 300, color: '#F5F0E8',
-          userSelect: 'none', pointerEvents: 'none',
-          letterSpacing: '0.2em',
-        }}>MODL</div>
-        <p style={{ ...s.sectionLabel, color: '#8a7e6e' }}>Early access</p>
-        <h2 style={s.ctaH2}>Be first.<br />Launch is coming soon.</h2>
-        <p style={s.ctaSub}>Join the waitlist and get 3 months free when we launch. We're onboarding the first 500 models personally.</p>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', maxWidth: 440 }}>
-          <WaitlistForm which="cta" />
-          <p style={{ ...s.socialProof, color: '#333' }}>No spam · Just one email when we launch</p>
+      <section id="waitlist" style={{ ...s.section, textAlign: 'center', paddingTop: 0 }}>
+        <p style={s.sectionLabel}>Early access</p>
+        <h2 style={{ ...s.h2, maxWidth: 600, margin: '0 auto 16px' }}>
+          Be one of the first<br />10 creators on MODL
+        </h2>
+        <p style={{ ...s.sectionSub, margin: '0 auto 40px' }}>
+          We&apos;re onboarding our first creators manually and treating them like gold. Get in early and shape the product.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+          <WaitlistForm />
+          <p style={s.socialProof}>No spam · One email when we launch · Cancel anytime</p>
         </div>
       </section>
-
+ 
       {/* FOOTER */}
-      <footer style={s.footer}>
-        <span style={s.footerLogo}>MODL</span>
-        <div style={s.footerLinks}>
-          <a href="#" style={s.footerLink}>Privacy Policy</a>
-          <a href="#" style={s.footerLink}>Terms of Service</a>
-          <a href="mailto:hello@modl.so" style={s.footerLink}>Contact</a>
-        </div>
-        <span style={s.footerRight}>© 2025 MODL</span>
-      </footer>
-
-      {/* Mobile responsive overrides */}
-      <style>{`
-        @media (max-width: 768px) {
-          nav { padding: 16px 20px !important; }
-          nav a { display: none; }
-          .pricing-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 640px) {
-          .steps-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-  </div>
-)
+      <div style={{ borderTop: '1px solid #DDD8CE' }}>
+        <footer style={s.footer}>
+          <span style={s.footerLogo}>MODL</span>
+          <div style={s.footerLinks}>
+            <a href="#features" style={s.footerLink}>Features</a>
+            <a href="#pricing" style={s.footerLink}>Pricing</a>
+          </div>
+          <p style={s.footerCopy}>© {new Date().getFullYear()} MODL. Creator management software.</p>
+        </footer>
+      </div>
+ 
+    </div>
+  )
 }
 </file>
 
@@ -1092,49 +3394,6 @@ const eslintConfig = defineConfig([
 export default eslintConfig;
 </file>
 
-<file path="jsconfig.json">
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./*"]
-    }
-  }
-}
-</file>
-
-<file path="next.config.mjs">
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-</file>
-
-<file path="package.json">
-{
-  "name": "modl",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.100.1",
-    "next": "14.2.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "supabase": "^2.84.4"
-  },
-  "devDependencies": {
-    "@types/node": "25.5.0",
-    "@types/react": "19.2.14"
-  }
-}
-</file>
-
 <file path="public/file.svg">
 <svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
 </file>
@@ -1192,6 +3451,87 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="next.config.mjs">
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "modl",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.100.1",
+    "next": "^16.2.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "supabase": "^2.84.4"
+  },
+  "devDependencies": {
+    "@types/node": "25.5.0",
+    "@types/react": "19.2.14",
+    "typescript": "6.0.2"
+  }
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    ".next/dev/types/**/*.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
 </file>
 
 </files>
