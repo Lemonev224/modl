@@ -159,15 +159,19 @@ export default function RosterPage() {
   const [toast, setToast] = useState({ message: '', type: 'success' })
   const [deleteConfirm, setDeleteConfirm] = useState(null) // creator id to confirm delete
 
+
+
   const showToast = (message, type = 'success') => setToast({ message, type })
 
   // ── Data fetching ──────────────────────────────────────────────────────────
   const fetchCreators = async () => {
     setLoading(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('creators')
       .select('*')
+      .eq('user_id', user.id) 
       .order('created_at', { ascending: false })
     if (error) showToast('Failed to load roster', 'error')
     else setCreators(data || [])
@@ -220,6 +224,7 @@ export default function RosterPage() {
 
     setSaving(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser() 
     const payload = {
       name: form.name.trim(),
       handle: form.handle.trim().startsWith('@') ? form.handle.trim() : `@${form.handle.trim()}`,
@@ -229,6 +234,7 @@ export default function RosterPage() {
       joined: form.joined,
       notes: form.notes.trim(),
       monthly_goal: form.monthly_goal ? parseFloat(form.monthly_goal) : null,
+      user_id: user.id,
     }
 
     let error

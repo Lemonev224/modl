@@ -68,13 +68,16 @@ export default function EarningsPage() {
     setTimeout(() => setToast({ message: '', type: 'success' }), 3500)
   }
 
-  const fetchEarnings = async () => {
-    setLoading(true)
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('earnings')
-      .select('*')
-      .order('date', { ascending: false })
+const fetchEarnings = async () => {
+  setLoading(true)
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) { setLoading(false); return }
+  const { data, error } = await supabase
+    .from('earnings')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('date', { ascending: false })
     if (error) showToast('Failed to load earnings', 'error')
     else setEntries(data || [])
     setLoading(false)
@@ -88,13 +91,15 @@ export default function EarningsPage() {
     if (!form.amount || isNaN(parseFloat(form.amount))) return showToast('Enter a valid amount', 'error')
     setSaving(true)
     const supabase = createClient()
-    const { error } = await supabase.from('earnings').insert([{
-      date: form.date,
-      creator: form.creator.trim(),
-      type: form.type,
-      fan: form.fan.trim(),
-      amount: parseFloat(form.amount),
-    }])
+const { data: { user } } = await supabase.auth.getUser()
+const { error } = await supabase.from('earnings').insert([{
+  date: form.date,
+  creator: form.creator.trim(),
+  type: form.type,
+  fan: form.fan.trim(),
+  amount: parseFloat(form.amount),
+  user_id: user.id,
+}])
     setSaving(false)
     if (error) {
       showToast(error.message, 'error')

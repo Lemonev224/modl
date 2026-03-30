@@ -39,13 +39,15 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState('6m')
 
   useEffect(() => {
-    const fetch = async () => {
-      setLoading(true)
-      const supabase = createClient()
-      const [{ data: earningsData }, { data: creatorsData }] = await Promise.all([
-        supabase.from('earnings').select('*').order('date', { ascending: false }),
-        supabase.from('creators').select('id, name, handle, status').order('name'),
-      ])
+const fetch = async () => {
+  setLoading(true)
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) { setLoading(false); return }
+  const [{ data: earningsData }, { data: creatorsData }] = await Promise.all([
+    supabase.from('earnings').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+    supabase.from('creators').select('id, name, handle, status').eq('user_id', user.id).order('name'),
+  ])
       setEntries(earningsData || [])
       setRosterCreators(creatorsData || [])
       setLoading(false)

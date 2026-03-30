@@ -16,6 +16,9 @@ const dmSans = DM_Sans({
 export const metadata = {
   title: 'MODL',
   description: 'Management tools for OnlyFans agencies.',
+    icons: {
+    icon: '/icon.png',       // path from public/ folder
+  },
 }
 export default function RootLayout({ children }) {
   return (

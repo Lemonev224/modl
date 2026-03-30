@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [name, setName] = useState('')
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [confirmAge, setConfirmAge] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -24,6 +26,18 @@ export default function LoginPage() {
       if (error) { setError(error.message); setStatus('error') }
       else router.push('/dashboard/analytics')
     } else {
+      // signup branch – check required consents
+      if (!confirmAge) {
+        setError('You must confirm that you are 18 or older.')
+        setStatus('error')
+        return
+      }
+      if (!agreeTerms) {
+        setError('You must agree to the Terms of Service and Privacy Policy.')
+        setStatus('error')
+        return
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -468,9 +482,47 @@ export default function LoginPage() {
                     <input className="auth-input" type="password" placeholder={mode === 'login' ? '••••••••' : 'Min. 8 characters'} value={password} onChange={e => setPassword(e.target.value)} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
                   </div>
 
+                  {/* Checkboxes for signup only */}
+                  {mode === 'signup' && (
+                    <>
+                      <div className="auth-field" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '12px' }}>
+                        <input
+                          type="checkbox"
+                          id="confirmAge"
+                          checked={confirmAge}
+                          onChange={(e) => setConfirmAge(e.target.checked)}
+                          style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer', accentColor: '#C9A96E' }}
+                        />
+                        <label htmlFor="confirmAge" style={{ fontSize: '13px', color: '#8a7e6e', lineHeight: 1.4 }}>
+                          I confirm that I am at least 18 years old.
+                        </label>
+                      </div>
+
+                      <div className="auth-field" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '8px' }}>
+                        <input
+                          type="checkbox"
+                          id="agreeTerms"
+                          checked={agreeTerms}
+                          onChange={(e) => setAgreeTerms(e.target.checked)}
+                          style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer', accentColor: '#C9A96E' }}
+                        />
+                        <label htmlFor="agreeTerms" style={{ fontSize: '13px', color: '#8a7e6e', lineHeight: 1.4 }}>
+                          I have read and agree to the{' '}
+                          <a href="/terms" target="_blank" style={{ color: '#C9A96E', textDecoration: 'underline' }}>Terms of Service</a>{' '}
+                          and{' '}
+                          <a href="/privacy" target="_blank" style={{ color: '#C9A96E', textDecoration: 'underline' }}>Privacy Policy</a>.
+                        </label>
+                      </div>
+                    </>
+                  )}
+
                   {error && <div className="auth-error">{error}</div>}
 
-                  <button type="submit" className={`auth-btn ${mode === 'signup' ? 'auth-btn-gold' : ''}`} disabled={status === 'loading'}>
+                  <button
+                    type="submit"
+                    className={`auth-btn ${mode === 'signup' ? 'auth-btn-gold' : ''}`}
+                    disabled={status === 'loading' || (mode === 'signup' && (!confirmAge || !agreeTerms))}
+                  >
                     {status === 'loading' ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
                   </button>
                 </form>

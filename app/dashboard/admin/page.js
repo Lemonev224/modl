@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 // ── IMPORTANT: replace this with your own email ─────────────────────────────
-const ADMIN_EMAIL = 'al@advisorly.uk'
+const ADMIN_EMAIL = 'modl_tech@proton.me'
 
 const c = { cream: '#F5F0E8', gold: '#C9A96E', black: '#0e0e0e', muted: '#8a7e6e', border: '#DDD8CE', surface: '#EDE8DF', red: '#c05050', green: '#4a8a5f' }
 

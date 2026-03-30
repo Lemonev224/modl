@@ -346,15 +346,17 @@ export default function Home() {
 
       {/* FOOTER */}
       <div style={{ borderTop: '1px solid #DDD8CE' }}>
-        <footer style={s.footer}>
-          <span style={s.footerLogo}>MODL</span>
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-            <a href="#features" style={s.footerLink}>Features</a>
-            <a href="#pricing" style={s.footerLink}>Pricing</a>
-            <button onClick={() => router.push('/login')} style={{ ...s.footerLink, background: 'none', border: 'none', cursor: 'pointer' }}>Sign in</button>
-          </div>
-          <p style={s.footerCopy}>© {new Date().getFullYear()} MODL. Creator agency management software.</p>
-        </footer>
+<footer style={s.footer}>
+  <span style={s.footerLogo}>MODL</span>
+  <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+    <a href="#features" style={s.footerLink}>Features</a>
+    <a href="#pricing" style={s.footerLink}>Pricing</a>
+    <a href="/terms" style={s.footerLink}>Terms</a>
+    <a href="/privacy" style={s.footerLink}>Privacy</a>
+    <button onClick={() => router.push('/login')} style={{ ...s.footerLink, background: 'none', border: 'none', cursor: 'pointer' }}>Sign in</button>
+  </div>
+  <p style={s.footerCopy}>© {new Date().getFullYear()} MODL. Creator agency management software.</p>
+</footer>
       </div>
 
     </div>
