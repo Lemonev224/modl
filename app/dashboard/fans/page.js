@@ -15,7 +15,7 @@ const s = {
 }
 
 const fans = [
-  { handle: 'fan_x99', spent: 284, subMonths: 8, flagged: true, priority: true, note: 'Big tipper — sends £25+ regularly. Always responds to PPV.', lastActive: '2h ago', tags: ['big tipper', 'PPV buyer'] },
+  { handle: 'fan_x99', spent: 284, subMonths: 8, flagged: true, priority: true, note: 'Big tipper — sends $25+ regularly. Always responds to PPV.', lastActive: '2h ago', tags: ['big tipper', 'PPV buyer'] },
   { handle: 'fan_blue22', spent: 156, subMonths: 5, flagged: false, priority: true, note: 'Buys every PPV. Prefers photo sets.', lastActive: '1d ago', tags: ['PPV buyer'] },
   { handle: 'fan_rose7', spent: 132, subMonths: 4, flagged: false, priority: false, note: '', lastActive: '3d ago', tags: [] },
   { handle: 'fan_nova3', spent: 96, subMonths: 3, flagged: false, priority: false, note: 'Mentioned he\'s a nurse — night shift. Post later in the evening.', lastActive: '5d ago', tags: [] },
@@ -84,7 +84,7 @@ export default function FansPage() {
           { label: 'Total fans', value: fans.length },
           { label: 'Priority fans', value: fans.filter(f => f.priority).length },
           { label: 'Flagged', value: fans.filter(f => f.flagged).length },
-          { label: 'Avg spend', value: `£${Math.round(fans.reduce((a, b) => a + b.spent, 0) / fans.length)}` },
+          { label: 'Avg spend', value: `$${Math.round(fans.reduce((a, b) => a + b.spent, 0) / fans.length)}` },
         ].map((stat, i) => (
           <div key={i} style={s.card}>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: c.muted, display: 'block', marginBottom: 6 }}>{stat.label}</span>
@@ -140,7 +140,7 @@ export default function FansPage() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: c.black, margin: '0 0 2px' }}>£{f.spent}</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: c.black, margin: '0 0 2px' }}>${f.spent}</p>
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: c.muted, margin: 0 }}>total spent</p>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export default function FansPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
               {[
-                { label: 'Total spent', value: `£${fan.spent}` },
+                { label: 'Total spent', value: `$${fan.spent}` },
                 { label: 'Subscribed', value: `${fan.subMonths} months` },
               ].map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${c.border}` }}>

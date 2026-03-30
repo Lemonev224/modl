@@ -19,15 +19,15 @@ const s = {
 }
 
 const stats = [
-  { label: 'Monthly Revenue', value: '£2,840', change: '+12%', up: true },
+  { label: 'Monthly Revenue', value: '$2,840', change: '+12%', up: true },
   { label: 'Subscribers', value: '312', change: '+8 this week', up: true },
-  { label: 'Avg Fan Value', value: '£9.10', change: '+£0.40', up: true },
+  { label: 'Avg Fan Value', value: '$9.10', change: '+$0.40', up: true },
   { label: 'Churn Rate', value: '4.2%', change: '-0.8%', up: true },
 ]
 
 const recentActivity = [
   { action: 'New subscriber', detail: 'fan_x99', time: '2 min ago' },
-  { action: 'PPV purchased', detail: '£12.00 tip received', time: '14 min ago' },
+  { action: 'PPV purchased', detail: '$12.00 tip received', time: '14 min ago' },
   { action: 'Post scheduled', detail: 'Tuesday 7pm', time: '1 hr ago' },
   { action: 'Promotion logged', detail: 'Reddit r/onlyfans101', time: '3 hr ago' },
   { action: 'New subscriber', detail: 'fan_blue22', time: '5 hr ago' },
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             ))}
           </div>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: c.muted, marginTop: 12 }}>
-            £{weeklyData.reduce((a, b) => a + b.value, 0).toLocaleString()} total this week
+            ${weeklyData.reduce((a, b) => a + b.value, 0).toLocaleString()} total this week
           </p>
         </div>
 
@@ -142,9 +142,9 @@ export default function DashboardPage() {
         <div style={s.card}>
           <p style={s.sectionTitle}>Earnings breakdown</p>
           {[
-            { label: 'Subscriptions', value: '£1,620', pct: 57 },
-            { label: 'Pay-per-view', value: '£840', pct: 30 },
-            { label: 'Tips', value: '£380', pct: 13 },
+            { label: 'Subscriptions', value: '$1,620', pct: 57 },
+            { label: 'Pay-per-view', value: '$840', pct: 30 },
+            { label: 'Tips', value: '$380', pct: 13 },
           ].map((row, i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>

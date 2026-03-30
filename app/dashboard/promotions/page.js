@@ -72,7 +72,7 @@ export default function PromotionsPage() {
               <input style={s.input} placeholder="@handle or r/sub" value={form.partner} onChange={e => setForm(f => ({ ...f, partner: e.target.value }))} />
             </div>
             <div>
-              <label style={s.label}>Amount spent (£)</label>
+              <label style={s.label}>Amount spent ($)</label>
               <input type="number" style={s.input} placeholder="0" value={form.spent} onChange={e => setForm(f => ({ ...f, spent: e.target.value }))} />
             </div>
             <div>
@@ -95,7 +95,7 @@ export default function PromotionsPage() {
       {/* Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
         {[
-          { label: 'Total spent', value: `£${totalSpent}` },
+          { label: 'Total spent', value: `$${totalSpent}` },
           { label: 'Followers gained', value: totalGained },
           { label: 'Converted to subs', value: totalConverted },
           { label: 'Est. ROI', value: `${roi}%` },
@@ -115,7 +115,7 @@ export default function PromotionsPage() {
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#8a7e6e', marginBottom: 20 }}>{bestPromo.platform} · {bestPromo.type}</p>
           <div style={{ display: 'flex', gap: 20 }}>
             {[
-              { label: 'Spent', value: bestPromo.spent > 0 ? `£${bestPromo.spent}` : 'Free' },
+              { label: 'Spent', value: bestPromo.spent > 0 ? `$${bestPromo.spent}` : 'Free' },
               { label: 'Gained', value: bestPromo.gained },
               { label: 'Converted', value: bestPromo.converted },
             ].map((s, i) => (
@@ -172,7 +172,7 @@ export default function PromotionsPage() {
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, padding: '3px 8px', borderRadius: 10, background: typeColor[row.type], color: typeText[row.type] }}>{row.type}</span>
                     </td>
                     <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0', whiteSpace: 'nowrap' }}>{row.partner}</td>
-                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.spent > 0 ? `£${row.spent}` : '—'}</td>
+                    <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.spent > 0 ? `$${row.spent}` : '—'}</td>
                     <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.gained}</td>
                     <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: c.black, padding: '12px 12px 12px 0' }}>{row.converted}</td>
                     <td style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: rate >= 40 ? '#4a8a5f' : rate >= 20 ? c.gold : '#c05050', padding: '12px 12px 12px 0', fontWeight: 500 }}>{rate}%</td>

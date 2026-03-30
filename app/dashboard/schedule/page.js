@@ -30,7 +30,7 @@ const queue = [
   { title: 'Exclusive video drop', date: 'Wed 3 Apr', time: '6:00 PM', type: 'Video', note: '' },
   { title: 'Story update', date: 'Wed 3 Apr', time: '9:00 PM', type: 'Story', note: 'Link to PPV' },
   { title: 'Behind the scenes reel', date: 'Fri 5 Apr', time: '5:30 PM', type: 'Video', note: '' },
-  { title: 'Weekend special PPV', date: 'Sat 6 Apr', time: '8:00 PM', type: 'PPV', note: '£15 price point' },
+  { title: 'Weekend special PPV', date: 'Sat 6 Apr', time: '8:00 PM', type: 'PPV', note: '$15 price point' },
 ]
 
 const typeColor = { Photo: '#eaf0f8', Video: '#eaf5ee', Story: '#fdf3e6', PPV: '#fde8e6' }

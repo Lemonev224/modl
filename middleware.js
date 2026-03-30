@@ -27,8 +27,14 @@ export async function middleware(request) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Redirect logged-in users from /login → analytics
   if (user && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/dashboard/analytics', request.url))
+  }
+
+  // Redirect /dashboard root → analytics
+  if (user && request.nextUrl.pathname === '/dashboard') {
+    return NextResponse.redirect(new URL('/dashboard/analytics', request.url))
   }
 
   return response

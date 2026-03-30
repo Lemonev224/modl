@@ -22,7 +22,7 @@ export default function LoginPage() {
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setStatus('error') }
-      else router.push('/dashboard')
+      else router.push('/dashboard/analytics')
     } else {
       const { error } = await supabase.auth.signUp({
         email,
@@ -350,27 +350,27 @@ export default function LoginPage() {
 
           <div className="auth-brand">
             <div className="auth-brand-logo">MODL</div>
-            <div className="auth-brand-tagline">Be your own agency</div>
+            <div className="auth-brand-tagline">Creator agency software</div>
           </div>
 
           <div className="auth-left-content">
             <p className="auth-left-quote">
-              Everything your agency does.<br />
-              For <em>£30 a month.</em><br />
-              Keep 100% of your earnings.
+              Your entire roster.<br />
+              Every dollar tracked.<br />
+              <em>One dashboard.</em>
             </p>
             <div className="auth-left-stats">
               <div>
-                <div className="auth-stat-value">100%</div>
-                <div className="auth-stat-label">You keep</div>
+                <div className="auth-stat-value">∞</div>
+                <div className="auth-stat-label">Creators</div>
               </div>
               <div>
-                <div className="auth-stat-value">£30</div>
+                <div className="auth-stat-value">$99</div>
                 <div className="auth-stat-label">Per month</div>
               </div>
               <div>
-                <div className="auth-stat-value">0%</div>
-                <div className="auth-stat-label">Commission</div>
+                <div className="auth-stat-value">0</div>
+                <div className="auth-stat-label">Spreadsheets</div>
               </div>
             </div>
           </div>
@@ -386,8 +386,8 @@ export default function LoginPage() {
               ))}
             </div>
             <div className="auth-social-proof">
-              <strong>Creators on the waitlist</strong><br />
-              Join them. Launch before your agency notices.
+              <strong>Agencies already running on MODL</strong><br />
+              Replace your spreadsheets. Know your numbers.
             </div>
           </div>
         </div>
@@ -416,23 +416,13 @@ export default function LoginPage() {
                 <form onSubmit={handleForgot}>
                   <div className="auth-field">
                     <label className="auth-label">Email</label>
-                    <input
-                      className="auth-input"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                    />
+                    <input className="auth-input" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
                   </div>
 
                   {error && <div className="auth-error">{error}</div>}
 
                   {status === 'forgot-sent' ? (
-                    <div className="auth-success-msg">
-                      ✓ Reset link sent — check your inbox.
-                    </div>
+                    <div className="auth-success-msg">✓ Reset link sent — check your inbox.</div>
                   ) : (
                     <button type="submit" className="auth-btn" disabled={status === 'loading'}>
                       {status === 'loading' ? 'Sending…' : 'Send reset link'}
@@ -441,11 +431,7 @@ export default function LoginPage() {
                 </form>
 
                 <div className="auth-switch">
-                  <button
-                    type="button"
-                    className="auth-switch-btn"
-                    onClick={() => { setMode('login'); setError(''); setStatus('idle') }}
-                  >
+                  <button type="button" className="auth-switch-btn" onClick={() => { setMode('login'); setError(''); setStatus('idle') }}>
                     ← Back to sign in
                   </button>
                 </div>
@@ -460,74 +446,39 @@ export default function LoginPage() {
                   <p className="auth-form-sub">
                     {mode === 'login'
                       ? 'Sign in to your MODL dashboard.'
-                      : 'Create your account. No agency needed.'}
+                      : 'Create your agency account. No card required.'}
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit}>
-
-                  {/* Name field — signup only */}
                   {mode === 'signup' && (
                     <div className="auth-field">
-                      <label className="auth-label">Your name</label>
-                      <input
-                        className="auth-input"
-                        type="text"
-                        placeholder="What should we call you?"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        required
-                        autoComplete="name"
-                      />
+                      <label className="auth-label">Agency / your name</label>
+                      <input className="auth-input" type="text" placeholder="e.g. Apex Management" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" />
                     </div>
                   )}
 
                   <div className="auth-field">
                     <label className="auth-label">Email</label>
-                    <input
-                      className="auth-input"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                    />
+                    <input className="auth-input" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
                   </div>
 
                   <div className="auth-field">
                     <label className="auth-label">Password</label>
-                    <input
-                      className="auth-input"
-                      type="password"
-                      placeholder={mode === 'login' ? '••••••••' : 'Min. 8 characters'}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                    />
+                    <input className="auth-input" type="password" placeholder={mode === 'login' ? '••••••••' : 'Min. 8 characters'} value={password} onChange={e => setPassword(e.target.value)} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
                   </div>
 
                   {error && <div className="auth-error">{error}</div>}
 
-                  <button
-                    type="submit"
-                    className={`auth-btn ${mode === 'signup' ? 'auth-btn-gold' : ''}`}
-                    disabled={status === 'loading'}
-                  >
-                    {status === 'loading'
-                      ? 'Please wait…'
-                      : mode === 'login' ? 'Sign in' : 'Create account'}
+                  <button type="submit" className={`auth-btn ${mode === 'signup' ? 'auth-btn-gold' : ''}`} disabled={status === 'loading'}>
+                    {status === 'loading' ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
                   </button>
                 </form>
 
                 {mode === 'login' && (
                   <p className="auth-terms">
-                    <button
-                      type="button"
-                      style={{ background: 'none', border: 'none', color: '#b5aa99', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textDecoration: 'underline', textUnderlineOffset: 2 }}
-                      onClick={() => { setMode('forgot'); setError(''); setStatus('idle') }}
-                    >
+                    <button type="button" style={{ background: 'none', border: 'none', color: '#b5aa99', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                      onClick={() => { setMode('forgot'); setError(''); setStatus('idle') }}>
                       Forgot password?
                     </button>
                   </p>
@@ -535,18 +486,14 @@ export default function LoginPage() {
 
                 <div className="auth-switch">
                   {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-                  <button
-                    type="button"
-                    className="auth-switch-btn"
-                    onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setStatus('idle') }}
-                  >
+                  <button type="button" className="auth-switch-btn" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setStatus('idle') }}>
                     {mode === 'login' ? 'Sign up free' : 'Sign in'}
                   </button>
                 </div>
 
                 {mode === 'signup' && (
                   <p className="auth-terms">
-                    By creating an account you agree to our Terms of Service and Privacy Policy.
+                    By creating an account you agree to our Terms of Service and Privacy Policy. Billed monthly by invoice.
                   </p>
                 )}
               </>
